@@ -450,6 +450,12 @@ body.sombre .minuteur { color: #14171A; }
 
 .recherche { margin-bottom: 10px; }
 
+/* ---------- v9 : repas sauté ---------- */
+.repas.saute { opacity: .45; border-left-color: var(--trait) !important; border-style: dashed; }
+.repas.saute .repas-nom { text-decoration: line-through; }
+.repas.saute .repas-meta { color: var(--prune); font-weight: 600; text-decoration: none; }
+.repas.saute .ic-plat { opacity: .5; }
+
 </style>
 </head>
 <body>
@@ -1113,6 +1119,19 @@ const EN = {
     "Indicative French 2026 prices, adjusted per aisle by chain. Editable in Settings.",
   "ex : moules, pignons de pin": "e.g. mussels, pine nuts",
   "Semaine": "Week",
+  "repas sauté": "meal skipped", "dessert sauté": "dessert skipped",
+  "Sauter ce repas": "Skip this meal", "Remettre ce repas": "Put this meal back",
+  "Sauter ce dessert": "Skip this dessert", "Remettre ce dessert": "Put this dessert back",
+  "Sauter la journée": "Skip the whole day", "Remettre la journée": "Put the day back",
+  "À préparer ce jour-là": "To make that day",
+  "repas sautés, retirés des courses": "meals skipped, taken off the shopping list",
+  "repas sauté, retiré des courses": "meal skipped, taken off the shopping list",
+  "repas sautés ne sont pas comptés": "skipped meals are not counted",
+  "repas sauté n'est pas compté": "skipped meal is not counted",
+  "Sauter ce repas retire aussi les restes qui en découlent : on ne réchauffe pas un plat jamais cuisiné.":
+    "Skipping this meal also removes the leftovers that come from it: you cannot reheat a dish that was never cooked.",
+  "Utile quand vous êtes absent : les repas disparaissent du menu et des courses.":
+    "Useful when you are away: the meals drop out of the menu and the shopping list.",
   "Utilisé dans": "Used in", "Il vous en restera": "You will have left over",
   "Chercher un plat, une cuisine, un ingrédient": "Search a dish, a cuisine, an ingredient",
   "Afficher plus": "Show more", "Aucune recette ne correspond.": "No recipe matches.",
@@ -1825,8 +1844,14 @@ function derniereUtilisation() {
   const m = {};
   for (const [i, plan] of Object.entries(state.plans)) {
     const n = Number(i);
-    const toutes = [...plan.sessions, ...(plan.sessionsDessert || [])];
-    for (const s of toutes) if (m[s.recetteId] === undefined || n > m[s.recetteId]) m[s.recetteId] = n;
+    const toutes = [
+      ...plan.sessions.map((s, k) => ({ s, k, d: false })),
+      ...(plan.sessionsDessert || []).map((s, k) => ({ s, k, d: true }))
+    ];
+    for (const { s, k, d } of toutes) {
+      if (!sessionActive(plan, k, d)) continue;
+      if (m[s.recetteId] === undefined || n > m[s.recetteId]) m[s.recetteId] = n;
+    }
   }
   return m;
 }
@@ -1926,9 +1951,12 @@ function coutSemaine(plan, forcerDefaut) {
   let t = 0;
   for (const { s, i, dessert } of toutesSessions(plan)) {
     const r = state.recettes.find(x => x.id === s.recetteId);
-    if (!r) continue;
+    if (!r || !sessionActive(plan, i, dessert)) continue;
+    const actifs = dessert
+      ? s.creneaux.filter(j => plan.desserts[j] && !plan.desserts[j].saute).length
+      : s.creneaux.filter(k => plan.creneaux[k] && !plan.creneaux[k].saute).length;
     const portions = forcerDefaut
-      ? s.creneaux.length * state.reglages.couvertsDefaut
+      ? actifs * state.reglages.couvertsDefaut
       : portionsSession(plan, i, dessert);
     t += coutRecette(r, portions / r.batch);
   }
@@ -1944,11 +1972,20 @@ function cibleHebdo() { return state.reglages.budgetMensuel * 12 / 52; }
 function portionsSession(plan, si, dessert) {
   if (dessert) {
     const s = plan.sessionsDessert[si];
-    return s.creneaux.reduce((a, j) => a + (plan.desserts[j] ? plan.desserts[j].couverts : 1), 0);
+    return s.creneaux.reduce((a, j) => {
+      const d = plan.desserts[j];
+      return a + (d && !d.saute ? (d.couverts || 1) : 0);
+    }, 0);
   }
   const s = plan.sessions[si];
-  return s.creneaux.reduce((a, i) => a + (plan.creneaux[i] ? (plan.creneaux[i].couverts || 1) : 0), 0);
+  return s.creneaux.reduce((a, i) => {
+    const c = plan.creneaux[i];
+    return a + (c && !c.saute ? (c.couverts || 1) : 0);
+  }, 0);
 }
+
+// une séance dont tous les repas sont sautés n'existe plus : ni courses, ni budget, ni rotation
+function sessionActive(plan, si, dessert) { return portionsSession(plan, si, dessert) > 0; }
 function facteurSession(plan, si, dessert) {
   const s = dessert ? plan.sessionsDessert[si] : plan.sessions[si];
   const r = state.recettes.find(x => x.id === s.recetteId);
@@ -1997,7 +2034,15 @@ function genererPlan(idxSem) {
   };
 
   const couverts = new Array(14).fill(r.couvertsDefaut);
-  if (ancien) for (let i = 0; i < 14; i++) if (ancien.creneaux[i] && ancien.creneaux[i].couverts) couverts[i] = ancien.creneaux[i].couverts;
+  const sautes = new Array(14).fill(false);
+  if (ancien) for (let i = 0; i < 14; i++) {
+    if (!ancien.creneaux[i]) continue;
+    if (ancien.creneaux[i].couverts) couverts[i] = ancien.creneaux[i].couverts;
+    if (ancien.creneaux[i].saute) sautes[i] = true;      // une absence connue survit à une régénération
+  }
+  const dessertsSautes = new Array(7).fill(false);
+  if (ancien && ancien.desserts) for (let j = 0; j < 7; j++)
+    if (ancien.desserts[j] && ancien.desserts[j].saute) dessertsSautes[j] = true;
 
   // --- quels midis de semaine sont les restes du dîner de la veille ---
   // lundi midi est exclu : il n'y a pas de dîner la veille dans la semaine
@@ -2029,6 +2074,7 @@ function genererPlan(idxSem) {
         sessionIdx: si, recetteId: choix.id, couverts: couverts[i],
         role: i === moment ? "frais" : (contrainte.pourRestes ? "restes" : "veille")
       };
+      if (sautes[i]) creneaux[i].saute = true;
     }
     sessions.push({ recetteId: choix.id, moment, teinte: TEINTES[si % TEINTES.length], creneaux: slots.slice(), contrainte });
   }
@@ -2059,14 +2105,14 @@ function genererPlan(idxSem) {
 
   const plan = { idxSem, creneaux, sessions, desserts: null, sessionsDessert: [], assoupli, genereLe: new Date().toISOString() };
 
-  if (r.dessertsActifs && desserts.length) genererDesserts(plan, desserts, vus, idxSem, gout, eligibles);
+  if (r.dessertsActifs && desserts.length) genererDesserts(plan, desserts, vus, idxSem, gout, eligibles, dessertsSautes);
   else plan.desserts = new Array(7).fill(null);
 
   ajusterAuBudget(plan, dispo, vus, idxSem, gout);
   return plan;
 }
 
-function genererDesserts(plan, desserts, vus, idxSem, gout, eligibles) {
+function genererDesserts(plan, desserts, vus, idxSem, gout, eligibles, sautesDessert) {
   const r = state.reglages;
   plan.desserts = new Array(7).fill(null);
   plan.sessionsDessert = [];
@@ -2091,6 +2137,7 @@ function genererDesserts(plan, desserts, vus, idxSem, gout, eligibles) {
     for (let k = 0; k < portionsDispo && j <= 4; k++) {
       if (j - debut > choix.keeps) break;
       plan.desserts[j] = { sessionIdx: si, recetteId: choix.id, couverts: couvertsJour(plan, j), role: jours.length ? "restes" : "frais" };
+      if (sautesDessert && sautesDessert[j]) plan.desserts[j].saute = true;
       jours.push(j); j++;
     }
     plan.sessionsDessert.push({ recetteId: choix.id, jour: jours[0], creneaux: jours, teinte: TEINTES[si % TEINTES.length], dessert: true });
@@ -2101,7 +2148,10 @@ function genererDesserts(plan, desserts, vus, idxSem, gout, eligibles) {
     { dessert: true, weekend: true, alcool: alcoolPermis(10) || alcoolPermis(11) });
   if (choixW) {
     const si = plan.sessionsDessert.length;
-    for (const jj of [5, 6]) plan.desserts[jj] = { sessionIdx: si, recetteId: choixW.id, couverts: couvertsJour(plan, jj), role: jj === 5 ? "frais" : "restes" };
+    for (const jj of [5, 6]) {
+      plan.desserts[jj] = { sessionIdx: si, recetteId: choixW.id, couverts: couvertsJour(plan, jj), role: jj === 5 ? "frais" : "restes" };
+      if (sautesDessert && sautesDessert[jj]) plan.desserts[jj].saute = true;
+    }
     plan.sessionsDessert.push({ recetteId: choixW.id, jour: 5, creneaux: [5, 6], teinte: TEINTES[si % TEINTES.length], dessert: true });
   }
 }
@@ -2184,7 +2234,7 @@ function listeCourses(plan) {
   const total = {};
   for (const { s, i, dessert } of toutesSessions(plan)) {
     const rec = state.recettes.find(x => x.id === s.recetteId);
-    if (!rec) continue;
+    if (!rec || !sessionActive(plan, i, dessert)) continue;
     const f = facteurSession(plan, i, dessert);
     for (const ing of rec.ing) {
       const cle = ing.n.toLowerCase() + "|" + ing.u;
@@ -2330,12 +2380,16 @@ function rendreSemaine(vue) {
     (hs ? hs + " " + trad(hs > 1 ? "ingrédients hors saison" : "ingrédient hors saison") : trad("tout est de saison"))));
 
   const cout = coutSemaine(plan), coutBase = coutSemaine(plan, true), cible = cibleHebdo();
+  const nSautes = plan.creneaux.filter(c => c && c.saute).length +
+    (plan.desserts || []).filter(d => d && d.saute).length;
+
   const stat = el("div", "stats");
   stat.appendChild(bloc4(occasions(plan), "occasions de cuisine"));
-  stat.appendChild(bloc4(plan.creneaux.filter(c => c && c.role === "restes").length, "repas de restes"));
+  stat.appendChild(bloc4(plan.creneaux.filter(c => c && c.role === "restes" && !c.saute).length, "repas de restes"));
   stat.appendChild(bloc4(euros(cout), cout > cible ? "cette semaine (cible " + euros(cible) + ")" : "cette semaine"));
   vue.appendChild(stat);
   if (cout > coutBase + 0.5) vue.appendChild(el("div", "petit", "dont " + euros(cout - coutBase) + " liés aux convives supplémentaires."));
+  if (nSautes) vue.appendChild(el("div", "petit prune", nSautes + " " + trad(nSautes > 1 ? "repas sautés, retirés des courses" : "repas sauté, retiré des courses")));
 
   vue.appendChild(repliable("Matériel de la semaine", corps => {
     const moments = [...new Set(plan.sessions.map(x => x.moment))].sort((a, b) => a - b);
@@ -2370,17 +2424,19 @@ function rendreSemaine(vue) {
         const sess = plan.sessions[c.sessionIdx];
         li.style.borderLeftColor = sess.teinte;
         if (c.role !== "frais") li.classList.add("restes");
+        if (c.saute) li.classList.add("saute");
         const ip = el("span", "ic ic-plat"); ip.innerHTML = svgIcone(iconePlat(rec), 20);
         li.appendChild(ip);
         const co = el("div", "repas-corps");
         co.appendChild(el("div", "repas-nom", rec ? rec.nom : "—"));
         const m = el("div", "repas-meta");
-        m.textContent = c.role === "frais" ? trad("à cuisiner") + " · " + rec.minutes + " min"
+        m.textContent = c.saute ? trad("repas sauté")
+          : c.role === "frais" ? trad("à cuisiner") + " · " + rec.minutes + " min"
           : trad(c.role === "restes" ? "Restes du" : "Préparé le") + " " + libelleMoment(sess.moment);
         co.appendChild(m);
         li.appendChild(co);
         if (rec && contientAlcool(rec)) li.appendChild(el("span", "tag-alcool", "alcool"));
-        if (c.couverts > 1) li.appendChild(el("span", "badge", c.couverts + " couv."));
+        if (c.couverts > 1 && !c.saute) li.appendChild(el("span", "badge", c.couverts + " couv."));
         li.classList.add("cliquable");
         li.onclick = () => ouvrirRepas(idx);
       }
@@ -2391,18 +2447,18 @@ function rendreSemaine(vue) {
     const d = plan.desserts && plan.desserts[j];
     if (d) {
       const rec = state.recettes.find(x => x.id === d.recetteId);
-      const li = el("div", "repas dessert" + (d.role === "frais" ? "" : " restes"));
+      const li = el("div", "repas dessert" + (d.role === "frais" ? "" : " restes") + (d.saute ? " saute" : ""));
       li.appendChild(el("span", "repas-quand", "dessert"));
       const idd = el("span", "ic ic-plat"); idd.innerHTML = svgIcone(iconePlat(rec), 20);
       li.appendChild(idd);
       const co = el("div", "repas-corps");
       co.appendChild(el("div", "repas-nom", rec ? rec.nom : "—"));
-      co.appendChild(el("div", "repas-meta", d.role === "frais"
-        ? trad("à préparer") + " · " + (rec ? rec.minutes : "?") + " min"
+      co.appendChild(el("div", "repas-meta", d.saute ? trad("dessert sauté")
+        : d.role === "frais" ? trad("à préparer") + " · " + (rec ? rec.minutes : "?") + " min"
         : j === 6 ? trad("Préparé le") + " " + trad("samedi") : trad("Préparé plus tôt dans la semaine")));
       li.appendChild(co);
       li.classList.add("cliquable");
-      li.onclick = () => { echelleFiche = null; recetteOuverte = d.recetteId; rendre(); };
+      li.onclick = () => ouvrirDessert(j);
       bl.appendChild(li);
     }
     vue.appendChild(bl);
@@ -2414,11 +2470,13 @@ function bloc4(v, l) { const d = el("div", "stat"); d.appendChild(el("strong", n
 // nombre de moments distincts où il faut être en cuisine.
 // Un dessert se prépare pendant la séance de cuisine du jour : il n'ajoute pas d'occasion.
 function occasions(plan) {
-  const m = new Set(plan.sessions.map(s => s.moment));
-  for (const s of (plan.sessionsDessert || [])) {
+  const m = new Set();
+  plan.sessions.forEach((s, k) => { if (sessionActive(plan, k, false)) m.add(s.moment); });
+  (plan.sessionsDessert || []).forEach((s, k) => {
+    if (!sessionActive(plan, k, true)) return;
     const j = s.jour;
     if (!m.has(j * 2) && !m.has(j * 2 + 1)) m.add("d" + j);
-  }
+  });
   return m.size;
 }
 
@@ -2477,6 +2535,13 @@ function ouvrirRepas(idx) {
   const b2 = el("button", "cta-secondaire", "Changer ce plat");
   b2.onclick = () => { remplacerSession(c.sessionIdx); fermerModale(); rendre(); };
   carte.appendChild(b2);
+
+  const b3 = el("button", "cta-secondaire" + (c.saute ? "" : " danger"), c.saute ? "Remettre ce repas" : "Sauter ce repas");
+  b3.onclick = () => { sauterCreneau(plan, idx, !c.saute); sauver(); fermerModale(); rendre(); };
+  carte.appendChild(b3);
+  if (!c.saute && c.role === "frais" && sess.creneaux.length > 1) {
+    carte.appendChild(el("p", "petit", "Sauter ce repas retire aussi les restes qui en découlent : on ne réchauffe pas un plat jamais cuisiné."));
+  }
 }
 
 function ouvrirConvivesJour(j) {
@@ -2489,6 +2554,24 @@ function ouvrirConvivesJour(j) {
     if (plan.desserts && plan.desserts[j]) plan.desserts[j].couverts = v;
     sauver(); fermerModale(); rendre();
   }));
+
+  // Une journée peut être partiellement sautée : sauter un dîner emporte les restes
+  // du lendemain midi. On propose donc les deux actions dès qu'elles ont un sens,
+  // plutôt que d'en deviner une.
+  const lignes = [plan.creneaux[j * 2], plan.creneaux[j * 2 + 1], plan.desserts && plan.desserts[j]];
+  const aSauter = lignes.some(x => x && !x.saute);
+  const aRemettre = lignes.some(x => x && x.saute);
+  if (aSauter) {
+    const b = el("button", "cta-secondaire danger", "Sauter la journée");
+    b.onclick = () => { sauterJour(plan, j, true); sauver(); fermerModale(); rendre(); };
+    carte.appendChild(b);
+  }
+  if (aRemettre) {
+    const b = el("button", "cta-secondaire", "Remettre la journée");
+    b.onclick = () => { sauterJour(plan, j, false); sauver(); fermerModale(); rendre(); };
+    carte.appendChild(b);
+  }
+  carte.appendChild(el("p", "petit", "Utile quand vous êtes absent : les repas disparaissent du menu et des courses."));
 }
 
 function stepper(label, valeur, cb) {
@@ -2532,6 +2615,11 @@ function rendreCourses(vue) {
   const dedans = el("div", "jauge-in" + (cout > cible ? " depasse" : ""));
   dedans.style.width = Math.min(100, Math.round(100 * cout / Math.max(1, cible))) + "%";
   j.appendChild(dedans);
+  const nSautes = plan.creneaux.filter(c => c && c.saute).length +
+    (plan.desserts || []).filter(d => d && d.saute).length;
+  if (nSautes) vue.appendChild(el("div", "petit prune",
+    nSautes + " " + trad(nSautes > 1 ? "repas sautés ne sont pas comptés" : "repas sauté n'est pas compté")));
+
   const lc = el("div", "ligne-cout");
   lc.appendChild(el("strong", null, euros(cout)));
   lc.appendChild(el("span", "petit", " " + trad("sur une cible de") + " " + euros(cible) + " " + trad("par semaine")));
@@ -3461,6 +3549,62 @@ function oublierDefilement() {
 }
 
 /* ==================================================================
+   SAUTER UN REPAS
+   Un repas sauté reste visible dans la semaine, grisé, mais ne compte
+   plus : ni dans les courses, ni dans le budget, ni dans la rotation.
+   Sauter un repas cuisiné retire aussi les restes qui en découlent.
+   Le retour en arrière rétablit toujours la séance entière.
+   ================================================================== */
+function sauterCreneau(plan, idx, valeur) {
+  const c = plan.creneaux[idx];
+  if (!c) return;
+  const sess = plan.sessions[c.sessionIdx];
+  const cible = (valeur && c.role === "frais") || !valeur ? sess.creneaux : [idx];
+  for (const i of cible) {
+    if (!plan.creneaux[i]) continue;
+    if (valeur) plan.creneaux[i].saute = true; else delete plan.creneaux[i].saute;
+  }
+}
+
+function sauterDessert(plan, j, valeur) {
+  const d = plan.desserts && plan.desserts[j];
+  if (!d) return;
+  const sess = plan.sessionsDessert[d.sessionIdx];
+  const cible = (valeur && d.role === "frais") || !valeur ? sess.creneaux : [j];
+  for (const k of cible) {
+    if (!plan.desserts[k]) continue;
+    if (valeur) plan.desserts[k].saute = true; else delete plan.desserts[k].saute;
+  }
+}
+
+function sauterJour(plan, j, valeur) {
+  for (const k of [0, 1]) sauterCreneau(plan, j * 2 + k, valeur);
+  sauterDessert(plan, j, valeur);
+}
+
+function ouvrirDessert(j) {
+  const plan = state.plans[semaineCourante];
+  const d = plan.desserts && plan.desserts[j];
+  if (!d) return;
+  const rec = state.recettes.find(x => x.id === d.recetteId);
+  const carte = feuille(trad("dessert") + " · " + trad(JOURS[j]));
+  carte.appendChild(el("p", "feuille-plat", rec ? rec.nom : "—"));
+  carte.appendChild(el("p", "petit", d.saute ? trad("dessert sauté")
+    : d.role === "frais" ? trad("À préparer ce jour-là") : trad("Préparé plus tôt dans la semaine")));
+
+  const b1 = el("button", "cta-secondaire", "Voir la recette");
+  b1.onclick = () => {
+    echelleFiche = { f: facteurSession(plan, d.sessionIdx, true), p: portionsSession(plan, d.sessionIdx, true) };
+    recetteOuverte = d.recetteId; fermerModale(); rendre();
+  };
+  carte.appendChild(b1);
+
+  const b2 = el("button", "cta-secondaire" + (d.saute ? "" : " danger"), d.saute ? "Remettre ce dessert" : "Sauter ce dessert");
+  b2.onclick = () => { sauterDessert(plan, j, !d.saute); sauver(); fermerModale(); rendre(); };
+  carte.appendChild(b2);
+}
+
+/* ==================================================================
    MATÉRIEL
    ================================================================== */
 const NOM_MATERIEL = {
@@ -3478,11 +3622,11 @@ function materielDe(r) { return (MATERIEL[r.id] || []).map(k => NOM_MATERIEL[k] 
 // tout le matériel d'une séance de cuisine, dédoublonné
 function materielSeance(plan, moment) {
   const s = new Set();
-  for (const sess of plan.sessions) {
-    if (sess.moment !== moment) continue;
+  plan.sessions.forEach((sess, k) => {
+    if (sess.moment !== moment || !sessionActive(plan, k, false)) return;
     const r = state.recettes.find(x => x.id === sess.recetteId);
     if (r) materielDe(r).forEach(m => s.add(m));
-  }
+  });
   for (const sess of (plan.sessionsDessert || [])) {
     const j = moment === -1 ? -1 : Math.floor(moment / 2);
     if (sess.jour !== j) continue;
@@ -3732,13 +3876,15 @@ function exporterIcs() {
   ajouter(dCourses, 60, trad("Courses de la semaine") + " · " + euros(coutSemaine(plan)), liste, 60);
 
   // une entrée par séance de cuisine
-  const moments = [...new Set(plan.sessions.map(s => s.moment))].sort((a, b) => a - b);
+  const actives = plan.sessions.map((s, k) => ({ s, k })).filter(o => sessionActive(plan, o.k, false));
+  const moments = [...new Set(actives.map(o => o.s.moment))].sort((a, b) => a - b);
   for (const m of moments) {
-    const plats = plan.sessions.filter(s => s.moment === m)
-      .map(s => state.recettes.find(x => x.id === s.recetteId)).filter(Boolean);
+    const plats = actives.filter(o => o.s.moment === m)
+      .map(o => state.recettes.find(x => x.id === o.s.recetteId)).filter(Boolean);
     const jour = m === -1 ? -1 : Math.floor(m / 2);
-    const desserts = (plan.sessionsDessert || []).filter(s => s.jour === jour)
-      .map(s => state.recettes.find(x => x.id === s.recetteId)).filter(Boolean);
+    const desserts = (plan.sessionsDessert || []).map((s, k) => ({ s, k }))
+      .filter(o => o.s.jour === jour && sessionActive(plan, o.k, true))
+      .map(o => state.recettes.find(x => x.id === o.s.recetteId)).filter(Boolean);
     const tous = [...plats, ...desserts];
     if (!tous.length) continue;
     const duree = Math.max(...tous.map(x => x.minutes));
