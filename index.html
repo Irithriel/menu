@@ -3049,11 +3049,25 @@ function euros(x) { return (Math.round(x * 100) / 100).toFixed(2).replace(".", "
 let onglet = "semaine", recetteOuverte = null, echelleFiche = null, ecranQuiz = null;
 let coursesOuvertes = new Set();   // articles dépliés dans la liste de courses
 
+// Position de défilement mémorisée par vue : régler un paramètre ou cocher un
+// article ne doit pas renvoyer en haut de page. Changer d'onglet, de semaine ou
+// de recette, si.
+let cleVue = null;
+const defilements = {};
+function cleDeVue() {
+  return onglet + "|" + (recetteOuverte || "") + "|" + (ecranQuiz === null ? "" : "q" + ecranQuiz) + "|" + semaineCourante;
+}
+
 function $(s) { return document.querySelector(s); }
 function el(t, c, x) { const e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = trad(x); return e; }
 
 function rendre() {
-  const v = $("#vue"); v.innerHTML = "";
+  const v = $("#vue");
+  const nouvelle = cleDeVue();
+  if (cleVue !== null) defilements[cleVue] = v.scrollTop;
+  cleVue = nouvelle;
+  const y = defilements[nouvelle] || 0;
+  v.innerHTML = "";
   if (ecranQuiz !== null) rendreQuiz(v);
   else if (recetteOuverte) rendreRecette(v);
   else if (onglet === "semaine") rendreSemaine(v);
@@ -3068,7 +3082,12 @@ function rendre() {
   });
   const titreApp = document.querySelector(".titre");
   if (titreApp) titreApp.textContent = trad("Menu de la semaine");
-  majEntete(); v.scrollTop = 0;
+  majEntete();
+  v.scrollTop = y;
+
+  // on ne garde qu'un historique court
+  const cles = Object.keys(defilements);
+  if (cles.length > 40) for (const k of cles.slice(0, cles.length - 40)) delete defilements[k];
 }
 
 function majEntete() {
@@ -3910,8 +3929,8 @@ function init() {
   document.querySelectorAll(".tab").forEach(t => {
     t.onclick = () => { onglet = t.dataset.onglet; recetteOuverte = null; echelleFiche = null; ecranQuiz = null; rendre(); };
   });
-  $("#prec").onclick = () => { semaineCourante--; coursesOuvertes.clear(); recetteOuverte = null; ecranQuiz = null; rendre(); };
-  $("#suiv").onclick = () => { semaineCourante++; coursesOuvertes.clear(); recetteOuverte = null; ecranQuiz = null; rendre(); };
+  $("#prec").onclick = () => { semaineCourante--; coursesOuvertes.clear(); oublierDefilement(); recetteOuverte = null; ecranQuiz = null; rendre(); };
+  $("#suiv").onclick = () => { semaineCourante++; coursesOuvertes.clear(); oublierDefilement(); recetteOuverte = null; ecranQuiz = null; rendre(); };
   $("#modale").onclick = e => { if (e.target.id === "modale") fermerModale(); };
   rendre();
 }
@@ -4176,6 +4195,11 @@ function panneauOrigines(a) {
     }
   }
   return w;
+}
+
+// une nouvelle semaine s'ouvre en haut, même si on y était déjà venu
+function oublierDefilement() {
+  for (const k of Object.keys(defilements)) if (k.endsWith("|" + semaineCourante)) delete defilements[k];
 }
 
 /* ==================================================================
