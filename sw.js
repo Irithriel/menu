@@ -1,5 +1,5 @@
-const CACHE = "menu-semaine-v5";
-const FICHIERS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
+const CACHE = "menu-semaine-v6";
+const FICHIERS = ["./", "./index.html", "./manifest.json", "./donnees.json", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FICHIERS)).then(() => self.skipWaiting()));

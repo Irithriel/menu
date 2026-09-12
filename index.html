@@ -438,6 +438,18 @@ body.sombre .minuteur { color: #14171A; }
 .origine-qte { flex: 0 0 auto; font-size: 13px; color: var(--encre2); font-variant-numeric: tabular-nums; }
 .origines-reste { font-size: 12px; color: var(--ocre); font-weight: 600; margin-top: 6px; }
 
+/* ---------- v8 : import et relecture ---------- */
+.proposition { border: 1px solid var(--trait); border-radius: var(--r); margin-bottom: 10px; background: var(--carte); }
+.proposition.gardee { border-color: var(--poireau); }
+.prop-tete { display: flex; align-items: flex-start; gap: 11px; padding: 12px 14px; cursor: pointer; }
+.proposition.gardee .prop-tete .case { background: var(--poireau); border-color: var(--poireau); }
+.prop-txt { flex: 1 1 auto; min-width: 0; }
+.prop-avis { font-size: 12px; color: var(--ocre); font-weight: 600; margin-top: 4px; }
+.proposition .repliable { margin: 0; border: none; border-top: 1px solid var(--trait); border-radius: 0; }
+.modale-carte .editeur + .champ-texte { margin-top: 8px; }
+
+.recherche { margin-bottom: 10px; }
+
 </style>
 </head>
 <body>
@@ -619,7 +631,9 @@ const PRIX = {
   "germes de soja": { p: 5.00, u: "kg" }, "kimchi": { p: 11.00, u: "kg" },
   "cheddar": { p: 13.00, u: "kg" }, "panko": { p: 7.00, u: "kg" },
   "nori": { p: 0.60, u: "u" }, "mirin": { p: 9.00, u: "l" },
-  "beurre de cacahuète": { p: 8.00, u: "kg" }
+  "beurre de cacahuète": { p: 8.00, u: "kg" },
+  "blette": { p: 2.20, u: "u" }, "orzo": { p: 2.60, u: "kg" },
+  "morue salée": { p: 18.00, u: "kg" }, "blancs d'œufs": { p: 0.36, u: "u" }
 };
 
 // prix de repli quand un ingrédient n'est pas dans la table
@@ -654,533 +668,6 @@ function coutIngredient(ing, enseigne) {
 }
 
 function prixConnu(nom) { return !!(PRIX[nom.toLowerCase()] || PRIX[nom]); }
-
-/* ===== PLATS — lot A ===== */
-const PLATS_A = [
-
-/* ---------- France ---------- */
-R("m01","Bœuf bourguignon","plat","boeuf","francaise","mijote long",4,4,95,"",
- [["bœuf à braiser",700,"g","v"],["lardons fumés",150,"g","v"],["carotte",4,"p","l"],["oignon",2,"p","l"],["champignons de Paris",250,"g","l"],["vin rouge",500,"m","d"],["concentré de tomate",15,"g","e"],["farine",20,"g","e"],["tagliatelles",300,"g","e"]],
- ["Saisir la viande en cocotte, réserver. Faire dorer lardons et oignons.","Singer à la farine, ajouter le concentré de tomate.","Remettre la viande, mouiller au vin, ajouter les carottes. Mijoter 1 h à couvert.","Ajouter les champignons 15 min avant la fin. Servir avec les tagliatelles."]),
-
-R("m02","Hachis parmentier","plat","boeuf","francaise","four fromage",4,3,60,"",
- [["viande hachée de bœuf",500,"g","v"],["pomme de terre",1000,"g","l"],["oignon",1,"p","l"],["lait",150,"m","c"],["beurre",50,"g","c"],["gruyère râpé",80,"g","c"],["concentré de tomate",15,"g","e"]],
- ["Cuire les pommes de terre 25 min, les écraser avec lait et beurre.","Revenir l'oignon et la viande, ajouter le concentré de tomate.","Monter en couches, couvrir de purée et de gruyère.","Gratiner 20 min à 200 °C."]),
-
-R("m03","Quiche lorraine","plat","oeuf","francaise","four fromage",4,3,55,"F",
- [["pâte brisée",1,"p","c"],["lardons fumés",200,"g","v"],["œufs",4,"p","c"],["crème fraîche",200,"m","c"],["lait",100,"m","c"],["gruyère râpé",80,"g","c"],["noix de muscade",1,"n","e"]],
- ["Étaler la pâte dans un moule, piquer le fond.","Faire revenir les lardons, les répartir.","Battre œufs, crème, lait et muscade. Verser, couvrir de gruyère.","Cuire 35 min à 180 °C."]),
-
-R("m04","Poulet rôti citron-thym","plat","volaille","francaise","four legumes",3,3,70,"F",
- [["cuisses de poulet",800,"g","v"],["pomme de terre",700,"g","l"],["carotte",3,"p","l"],["citron",1,"p","l"],["ail",4,"a","l"],["thym",3,"g","e"],["huile d'olive",3,"s","e"]],
- ["Couper les légumes en gros morceaux, les disposer dans un plat.","Poser le poulet dessus, huile, citron en rondelles, thym, ail en chemise.","Enfourner 55 min à 200 °C en arrosant à mi-cuisson."]),
-
-R("m05","Blanquette de veau express","plat","boeuf","francaise","mijote long",4,4,80,"",
- [["bœuf à braiser",700,"g","v"],["carotte",3,"p","l"],["poireau",2,"p","l"],["champignons de Paris",250,"g","l"],["crème fraîche",200,"m","c"],["beurre",30,"g","c"],["farine",30,"g","e"],["bouillon de volaille",2,"u","e"],["riz long",250,"g","e"]],
- ["Blanchir la viande 5 min, égoutter.","Cuire 1 h avec les légumes et le bouillon.","Faire un roux, détendre avec le bouillon, ajouter la crème.","Réunir le tout, ajouter les champignons poêlés. Servir avec le riz."]),
-
-R("m06","Gratin de courgettes au chèvre","plat","legume","francaise","four fromage legumes",3,3,50,"V",
- [["courgette",4,"p","l"],["bûche de chèvre",150,"g","c"],["crème fraîche épaisse",200,"m","c"],["œufs",3,"p","c"],["oignon",1,"p","l"],["thym",2,"g","e"],["huile d'olive",2,"s","e"]],
- ["Couper les courgettes en rondelles, les revenir 12 min avec l'oignon.","Battre œufs, crème et thym.","Verser dans un plat, parsemer de chèvre.","Enfourner 30 min à 180 °C."]),
-
-R("m07","Velouté de potimarron","plat","legume","francaise","soupe legumes rapide",4,4,35,"V",
- [["potimarron",1,"p","l"],["pomme de terre",2,"p","l"],["oignon",1,"p","l"],["crème fraîche",100,"m","c"],["bouillon de légumes",2,"u","e"],["noix de muscade",1,"n","e"],["pain de campagne",1,"p","b"]],
- ["Couper le potimarron non pelé et les pommes de terre en cubes.","Faire suer l'oignon, ajouter les légumes, couvrir de bouillon.","Cuire 25 min, mixer avec la crème et la muscade."]),
-
-R("m08","Velouté poireaux-pommes de terre","plat","legume","francaise","soupe legumes rapide",4,4,35,"V",
- [["poireau",4,"p","l"],["pomme de terre",500,"g","l"],["beurre",30,"g","c"],["crème fraîche",100,"m","c"],["bouillon de légumes",2,"u","e"]],
- ["Émincer les blancs de poireaux, les faire suer au beurre 10 min.","Ajouter les pommes de terre en cubes et 1,2 l de bouillon.","Cuire 20 min, mixer, ajouter la crème."]),
-
-R("m09","Soupe à l'oignon gratinée","plat","legume","francaise","soupe fromage four",3,3,50,"V",
- [["oignon",6,"p","l"],["beurre",40,"g","c"],["farine",10,"g","e"],["bouillon de légumes",2,"u","e"],["gruyère râpé",100,"g","c"],["pain de campagne",1,"p","b"],["vin blanc sec",100,"m","d"]],
- ["Émincer les oignons, les caraméliser 25 min au beurre à feu doux.","Singer, déglacer au vin, mouiller d'un litre de bouillon. Mijoter 20 min.","Répartir en bols, poser pain et gruyère, gratiner 8 min."]),
-
-R("m10","Gratin de pâtes au thon","plat","pates","francaise","four fromage",3,3,45,"F",
- [["macaronis",300,"g","e"],["thon en conserve",300,"g","e"],["tomates concassées",400,"g","e"],["crème fraîche",150,"m","c"],["gruyère râpé",100,"g","c"],["oignon",1,"p","l"],["origan",2,"g","e"]],
- ["Cuire les pâtes 2 min de moins que le temps indiqué.","Mélanger avec thon, tomates, crème, oignon revenu et origan.","Verser dans un plat, couvrir de gruyère, gratiner 25 min à 190 °C."]),
-
-R("m11","Salade de riz, thon et légumes","plat","riz","francaise","salade froid rapide",3,3,25,"F",
- [["riz long",250,"g","e"],["thon en conserve",200,"g","e"],["maïs en conserve",150,"g","e"],["concombre",1,"p","l"],["tomates cerises",200,"g","l"],["œufs",3,"p","c"],["moutarde",5,"g","e"],["huile d'olive",3,"s","e"]],
- ["Cuire le riz, le rafraîchir.","Cuire les œufs durs 9 min, les couper en quartiers.","Mélanger le tout avec une vinaigrette moutardée. Réserver au frais 1 h."]),
-
-R("m12","Galettes de sarrasin complètes","plat","oeuf","francaise","rapide fromage",2,2,25,"",
- [["galettes de sarrasin",4,"p","b"],["œufs",4,"p","c"],["jambon blanc",120,"g","v"],["gruyère râpé",100,"g","c"],["beurre",20,"g","c"]],
- ["Chauffer une galette au beurre dans une poêle.","Casser un œuf au centre, ajouter jambon et fromage.","Rabattre les bords, couvrir 3 min. Répéter."]),
-
-R("m13","Endives au jambon","plat","legume","francaise","four fromage",3,3,55,"",
- [["endive",6,"p","l"],["jambon blanc",6,"t","v"],["beurre",40,"g","c"],["farine",40,"g","e"],["lait",500,"m","c"],["gruyère râpé",100,"g","c"],["noix de muscade",1,"n","e"],["citron",1,"p","l"]],
- ["Braiser les endives 20 min à l'eau citronnée, bien les presser.","Préparer une béchamel : roux, lait, muscade.","Rouler chaque endive dans une tranche de jambon, napper, gratiner 25 min à 200 °C."]),
-
-R("m14","Poêlée de gnocchis au pesto","plat","pates","francaise","rapide fromage",2,2,20,"V",
- [["gnocchis frais",500,"g","c"],["pesto",45,"g","e"],["tomates cerises",250,"g","l"],["parmesan râpé",40,"g","c"],["pignons de pin",30,"g","e"],["huile d'olive",2,"s","e"]],
- ["Poêler les gnocchis sans les cuire à l'eau, 8 min à feu vif.","Ajouter les tomates cerises coupées, 3 min.","Hors du feu, mélanger au pesto. Parmesan et pignons torréfiés."]),
-
-R("m15","Saumon en papillote et riz","plat","poisson","francaise","four rapide legumes",2,2,30,"F",
- [["pavés de saumon",300,"g","v"],["brocoli",1,"p","l"],["riz basmati",150,"g","e"],["citron",1,"p","l"],["aneth",1,"p","l"],["crème fraîche",50,"m","c"]],
- ["Poser chaque pavé sur du papier cuisson avec citron, aneth et un peu de crème.","Fermer les papillotes, enfourner 15 min à 190 °C.","Cuire riz et brocoli à la vapeur 8 min."]),
-
-R("m16","Poulet basquaise","plat","volaille","francaise","mijote legumes",4,4,60,"",
- [["cuisses de poulet",800,"g","v"],["poivron rouge",2,"p","l"],["poivron vert",1,"p","l"],["oignon",2,"p","l"],["tomates concassées",400,"g","e"],["ail",3,"a","l"],["piment d'Espelette",2,"g","e"],["riz long",250,"g","e"]],
- ["Dorer le poulet, réserver.","Faire fondre oignons et poivrons 15 min.","Ajouter tomates, ail, piment et le poulet. Mijoter 35 min.","Servir avec le riz."]),
-
-R("m17","Tartiflette","plat","porc","francaise","four fromage",4,3,60,"",
- [["pomme de terre",1000,"g","l"],["lardons fumés",200,"g","v"],["oignon",2,"p","l"],["comté",250,"g","c"],["crème fraîche",200,"m","c"],["vin blanc sec",100,"m","d"]],
- ["Cuire les pommes de terre 20 min, les couper en rondelles.","Faire dorer lardons et oignons, déglacer au vin blanc.","Alterner pommes de terre et lardons, napper de crème, couvrir de fromage.","Enfourner 25 min à 200 °C."]),
-
-R("m18","Croque-monsieur au four","plat","porc","francaise","rapide four fromage",2,2,25,"",
- [["pain de mie",8,"t","b"],["jambon blanc",4,"t","v"],["gruyère râpé",120,"g","c"],["beurre",30,"g","c"],["farine",20,"g","e"],["lait",250,"m","c"],["salade verte",1,"p","l"]],
- ["Préparer une béchamel épaisse.","Tartiner le pain, garnir de jambon et de fromage.","Napper le dessus, enfourner 12 min à 200 °C. Servir avec la salade."]),
-
-R("m19","Soupe au pistou","plat","legumineuse","francaise","soupe legumes",4,4,50,"FV",
- [["haricots blancs en conserve",400,"g","e"],["courgette",2,"p","l"],["carotte",2,"p","l"],["haricots verts",200,"g","l"],["pomme de terre",2,"p","l"],["macaronis",100,"g","e"],["pesto",45,"g","e"],["bouillon de légumes",2,"u","e"]],
- ["Couper tous les légumes en petits dés.","Cuire 25 min dans le bouillon.","Ajouter haricots blancs et pâtes, 10 min de plus.","Incorporer le pesto hors du feu."]),
-
-R("m20","Filet de cabillaud, beurre blanc","plat","poisson","francaise","rapide",2,2,30,"",
- [["filets de cabillaud",300,"g","v"],["échalote",3,"p","l"],["vin blanc sec",100,"m","d"],["beurre",100,"g","c"],["crème fraîche",50,"m","c"],["pomme de terre",500,"g","l"],["ciboulette",1,"p","l"]],
- ["Cuire les pommes de terre vapeur 20 min.","Réduire échalotes et vin blanc presque à sec, ajouter la crème.","Monter au beurre froid hors du feu.","Cuire le cabillaud 8 min à la poêle, napper."]),
-
-/* ---------- Italie ---------- */
-R("m21","Spaghetti alla puttanesca","plat","pates","italienne","rapide epice",2,2,25,"",
- [["spaghettis",200,"g","e"],["tomates concassées",400,"g","e"],["olives noires dénoyautées",80,"g","e"],["câpres",20,"g","e"],["filets d'anchois",20,"g","v"],["ail",2,"a","l"],["piment d'Espelette",1,"n","e"],["huile d'olive",2,"s","e"]],
- ["Faire fondre ail et anchois dans l'huile 2 min.","Ajouter tomates, olives et câpres. Mijoter 15 min.","Cuire les pâtes al dente, les mélanger à la sauce."]),
-
-R("m22","Risotto aux champignons","plat","riz","italienne","fromage",2,2,40,"V",
- [["riz arborio",180,"g","e"],["champignons de Paris",300,"g","l"],["échalote",2,"p","l"],["vin blanc sec",100,"m","d"],["bouillon de volaille",1,"u","e"],["parmesan râpé",50,"g","c"],["beurre",30,"g","c"]],
- ["Faire revenir les champignons émincés, réserver.","Nacrer le riz avec l'échalote, déglacer au vin blanc.","Ajouter le bouillon louche par louche pendant 18 min.","Hors du feu, incorporer beurre, parmesan et champignons."]),
-
-R("m23","Lasagnes à la bolognaise","plat","pates","italienne","four fromage long",4,3,90,"",
- [["lasagnes",250,"g","e"],["viande hachée de bœuf",500,"g","v"],["passata",700,"g","e"],["carotte",2,"p","l"],["oignon",1,"p","l"],["céleri branche",1,"p","l"],["lait",600,"m","c"],["beurre",50,"g","c"],["farine",50,"g","e"],["parmesan râpé",60,"g","c"]],
- ["Préparer un soffritto, ajouter la viande puis la passata. Mijoter 45 min.","Faire une béchamel.","Alterner pâtes, bolognaise et béchamel.","Couvrir de parmesan, enfourner 35 min à 180 °C."]),
-
-R("m24","Pasta e fagioli","plat","legumineuse","italienne","soupe mijote",4,4,45,"FV",
- [["haricots blancs en conserve",800,"g","e"],["macaronis",150,"g","e"],["tomates concassées",400,"g","e"],["carotte",2,"p","l"],["céleri branche",1,"p","l"],["oignon",1,"p","l"],["romarin",2,"g","e"],["huile d'olive",3,"s","e"]],
- ["Faire un soffritto carotte, céleri, oignon.","Ajouter tomates, haricots et 700 ml d'eau. Mijoter 25 min.","Mixer un tiers de la soupe, ajouter les pâtes, 10 min."]),
-
-R("m25","Aubergines à la parmigiana","plat","legume","italienne","four fromage legumes long",4,3,80,"V",
- [["aubergine",4,"p","l"],["passata",700,"g","e"],["mozzarella",250,"g","c"],["parmesan râpé",60,"g","c"],["basilic frais",1,"p","l"],["ail",2,"a","l"],["huile d'olive",5,"s","e"]],
- ["Griller les tranches d'aubergine au four 20 min à 200 °C.","Préparer une sauce tomate à l'ail et au basilic, 20 min.","Alterner aubergines, sauce et fromages.","Enfourner 30 min à 180 °C."]),
-
-R("m26","Osso-buco de dinde","plat","volaille","italienne","mijote long",4,4,85,"",
- [["escalopes de dinde",700,"g","v"],["carotte",3,"p","l"],["oignon",2,"p","l"],["tomates concassées",400,"g","e"],["vin blanc sec",150,"m","d"],["citron",1,"p","l"],["persil plat",1,"p","l"],["polenta",200,"g","e"]],
- ["Fariner et dorer la viande, réserver.","Faire suer les légumes, déglacer au vin.","Ajouter tomates et viande, mijoter 1 h.","Finir au zeste de citron et persil. Servir avec la polenta."]),
-
-R("m27","Pâtes cacio e pepe","plat","pates","italienne","rapide fromage",2,2,15,"V",
- [["spaghettis",200,"g","e"],["parmesan râpé",100,"g","c"],["poivre",4,"g","e"],["huile d'olive",1,"s","e"]],
- ["Torréfier le poivre concassé à la poêle.","Cuire les pâtes, garder une louche d'eau de cuisson.","Émulsionner parmesan, poivre et eau de cuisson hors du feu."]),
-
-R("m28","Minestrone","plat","legume","italienne","soupe legumes",4,4,45,"FV",
- [["courgette",2,"p","l"],["carotte",2,"p","l"],["pomme de terre",2,"p","l"],["haricots blancs en conserve",400,"g","e"],["tomates concassées",400,"g","e"],["macaronis",100,"g","e"],["parmesan râpé",40,"g","c"],["bouillon de légumes",2,"u","e"]],
- ["Couper tous les légumes en dés.","Les cuire 25 min dans le bouillon avec les tomates.","Ajouter haricots et pâtes, 10 min. Parmesan au service."]),
-
-R("m29","Escalope milanaise","plat","volaille","italienne","rapide",2,2,30,"",
- [["escalopes de dinde",300,"g","v"],["œufs",2,"p","c"],["chapelure",100,"g","e"],["farine",50,"g","e"],["citron",1,"p","l"],["spaghettis",200,"g","e"],["passata",200,"g","e"]],
- ["Paner les escalopes : farine, œuf, chapelure.","Les cuire 4 min par face à la poêle.","Servir avec les pâtes à la tomate et un quartier de citron."]),
-
-R("m30","Risotto aux tomates et burrata","plat","riz","italienne","fromage",2,2,40,"V",
- [["riz arborio",180,"g","e"],["tomates cerises",300,"g","l"],["burrata",125,"g","c"],["échalote",2,"p","l"],["bouillon de légumes",1,"u","e"],["basilic frais",1,"p","l"],["huile d'olive",2,"s","e"]],
- ["Nacrer le riz avec l'échalote.","Ajouter le bouillon louche par louche, 18 min.","Incorporer les tomates confites, poser la burrata et le basilic."]),
-
-/* ---------- Espagne, Portugal, Grèce, Méditerranée ---------- */
-R("m31","Tortilla de pommes de terre","plat","oeuf","espagnole","froid",2,3,40,"FV",
- [["pomme de terre",500,"g","l"],["œufs",5,"p","c"],["oignon",1,"p","l"],["huile d'olive",5,"s","e"]],
- ["Confire les pommes de terre en fines rondelles 20 min à l'huile avec l'oignon.","Battre les œufs, y verser les pommes de terre égouttées.","Cuire 6 min, retourner à l'assiette, 4 min de plus."]),
-
-R("m32","Paella de poulet et chorizo","plat","riz","espagnole","epice long",4,3,70,"",
- [["riz rond",350,"g","e"],["cuisses de poulet",600,"g","v"],["chorizo",150,"g","v"],["poivron rouge",2,"p","l"],["petits pois surgelés",150,"g","s"],["oignon",1,"p","l"],["safran",0.2,"g","e"],["paprika fumé",4,"g","e"],["bouillon de volaille",2,"u","e"]],
- ["Dorer poulet et chorizo dans une grande poêle.","Ajouter oignon et poivrons, 10 min.","Verser le riz, le paprika, le safran et 900 ml de bouillon.","Cuire 20 min sans remuer, ajouter les petits pois en fin."]),
-
-R("m33","Pois chiches aux épinards à l'andalouse","plat","legumineuse","espagnole","rapide epice",3,4,30,"FV",
- [["pois chiches en conserve",800,"g","e"],["épinards surgelés",400,"g","s"],["ail",3,"a","l"],["paprika fumé",5,"g","e"],["cumin moulu",3,"g","e"],["pain de campagne",1,"p","b"],["huile d'olive",3,"s","e"]],
- ["Frire l'ail et une tranche de pain, mixer en pâte avec les épices.","Réchauffer pois chiches et épinards 10 min.","Lier avec la pâte de pain, mijoter 10 min."]),
-
-R("m34","Gambas à l'ail","plat","fruitsdemer","espagnole","rapide epice",2,1,20,"",
- [["crevettes décortiquées",300,"g","v"],["ail",5,"a","l"],["piment frais",1,"p","l"],["persil plat",1,"p","l"],["huile d'olive",5,"s","e"],["pain de campagne",1,"p","b"],["riz long",150,"g","e"]],
- ["Chauffer l'huile avec l'ail émincé et le piment.","Ajouter les crevettes, 3 min à feu vif.","Persil, et du pain pour la sauce. Servir avec le riz."]),
-
-R("m35","Moussaka","plat","agneau","grecque","four long fromage",4,3,90,"",
- [["viande hachée d'agneau",500,"g","v"],["aubergine",3,"p","l"],["pomme de terre",400,"g","l"],["tomates concassées",400,"g","e"],["oignon",2,"p","l"],["cannelle",2,"g","e"],["lait",500,"m","c"],["beurre",50,"g","c"],["farine",50,"g","e"],["gruyère râpé",80,"g","c"]],
- ["Griller aubergines et pommes de terre au four 20 min.","Cuire la viande avec oignons, tomates et cannelle, 25 min.","Préparer une béchamel.","Monter en couches, gratiner 35 min à 180 °C."]),
-
-R("m36","Salade grecque et pain pita","plat","legume","grecque","salade froid cru rapide legumes",2,2,15,"FV",
- [["concombre",1,"p","l"],["tomate",4,"p","l"],["oignon rouge",1,"p","l"],["feta",200,"g","c"],["olives noires dénoyautées",80,"g","e"],["origan",2,"g","e"],["huile d'olive",4,"s","e"],["pain pita",4,"p","b"]],
- ["Couper concombre, tomates et oignon en gros morceaux.","Ajouter olives et feta en dés.","Huile d'olive, origan, poivre. Servir avec les pita tièdes."]),
-
-R("m37","Gemista — légumes farcis","plat","riz","grecque","four legumes long",4,3,80,"FV",
- [["tomate",4,"p","l"],["poivron rouge",3,"p","l"],["riz long",250,"g","e"],["oignon",2,"p","l"],["menthe fraîche",1,"p","l"],["persil plat",1,"p","l"],["pomme de terre",500,"g","l"],["huile d'olive",6,"s","e"]],
- ["Évider tomates et poivrons, réserver la chair.","Mélanger riz cru, oignon, herbes et chair mixée.","Farcir aux trois quarts, entourer de pommes de terre.","Enfourner 1 h à 180 °C avec un verre d'eau."]),
-
-R("m38","Bacalhau à brás","plat","poisson","portugaise","rapide",3,2,35,"",
- [["filets de colin",400,"g","v"],["pomme de terre",600,"g","l"],["œufs",5,"p","c"],["oignon",2,"p","l"],["olives noires dénoyautées",60,"g","e"],["persil plat",1,"p","l"],["huile d'olive",4,"s","e"]],
- ["Couper les pommes de terre en allumettes, les frire jusqu'à coloration.","Faire revenir oignons et poisson émietté.","Réunir, verser les œufs battus et remuer hors du feu.","Olives et persil au moment de servir."]),
-
-R("m39","Caldo verde","plat","legume","portugaise","soupe rapide",4,4,35,"F",
- [["pomme de terre",700,"g","l"],["chou blanc",1,"p","l"],["chorizo",120,"g","v"],["oignon",1,"p","l"],["ail",2,"a","l"],["huile d'olive",3,"s","e"],["bouillon de légumes",2,"u","e"]],
- ["Cuire pommes de terre, oignon et ail dans le bouillon 20 min, mixer.","Émincer le chou très finement, l'ajouter 5 min.","Poêler le chorizo en rondelles et le déposer dessus."]),
-
-R("m40","Ratatouille et œufs","plat","legume","mediterraneenne","mijote legumes",3,4,55,"FV",
- [["courgette",2,"p","l"],["aubergine",2,"p","l"],["poivron rouge",2,"p","l"],["tomate",4,"p","l"],["oignon",2,"p","l"],["ail",3,"a","l"],["herbes de Provence",3,"g","e"],["œufs",3,"p","c"],["huile d'olive",5,"s","e"]],
- ["Cuire chaque légume séparément 10 min à l'huile.","Tout réunir avec ail et herbes, mijoter 25 min.","Casser les œufs dessus, couvrir 6 min."]),
-
-R("m41","Salade de lentilles, feta et tomates","plat","legumineuse","mediterraneenne","salade froid fromage legumes",3,4,30,"FV",
- [["lentilles vertes",250,"g","e"],["feta",150,"g","c"],["tomates cerises",250,"g","l"],["échalote",1,"p","l"],["persil plat",1,"p","l"],["moutarde",5,"g","e"],["vinaigre de vin",30,"m","e"],["huile d'olive",4,"s","e"]],
- ["Cuire les lentilles 20 min, les rafraîchir.","Préparer une vinaigrette moutardée.","Mélanger avec tomates, échalote et persil, émietter la feta."]),
-
-R("m42","Taboulé libanais","plat","cereale","moyenorient","salade froid cru rapide legumes",3,3,25,"FV",
- [["boulgour",150,"g","e"],["persil plat",3,"p","l"],["menthe fraîche",1,"p","l"],["tomate",4,"p","l"],["oignons nouveaux",2,"p","l"],["citron",2,"p","l"],["huile d'olive",5,"s","e"]],
- ["Réhydrater le boulgour 20 min à l'eau froide.","Hacher très finement persil, menthe, tomates et oignons.","Assaisonner généreusement au citron et à l'huile."]),
-
-R("m43","Chakchouka","plat","oeuf","nordafricaine","rapide epice legumes",2,2,30,"V",
- [["tomates concassées",400,"g","e"],["poivron rouge",2,"p","l"],["oignon",1,"p","l"],["œufs",4,"p","c"],["cumin moulu",3,"g","e"],["paprika fumé",3,"g","e"],["pain de campagne",1,"p","b"]],
- ["Faire revenir oignon et poivrons 10 min.","Ajouter tomates et épices, réduire 10 min.","Creuser des puits, y casser les œufs, couvrir 6 min."]),
-
-R("m44","Tajine de poulet aux abricots","plat","volaille","nordafricaine","mijote sucresale",4,4,60,"",
- [["cuisses de poulet",800,"g","v"],["abricots secs",150,"g","e"],["oignon",2,"p","l"],["carotte",3,"p","l"],["ras el-hanout",12,"g","e"],["amandes effilées",50,"g","e"],["semoule de couscous",250,"g","e"],["bouillon de volaille",1,"u","e"]],
- ["Dorer le poulet, réserver. Faire suer les oignons.","Ajouter épices, carottes, poulet et 400 ml de bouillon.","Mijoter 40 min, abricots 15 min avant la fin.","Servir sur la semoule, amandes torréfiées."]),
-
-R("m45","Couscous végétarien","plat","legume","nordafricaine","mijote legumes",4,4,55,"FV",
- [["pois chiches en conserve",400,"g","e"],["courgette",2,"p","l"],["carotte",3,"p","l"],["navet",2,"p","l"],["tomates concassées",400,"g","e"],["oignon",2,"p","l"],["ras el-hanout",12,"g","e"],["harissa",15,"g","e"],["semoule de couscous",300,"g","e"]],
- ["Faire suer oignons et épices.","Ajouter les légumes en gros morceaux et les tomates, couvrir d'eau.","Mijoter 35 min, ajouter les pois chiches en fin.","Servir sur la semoule, harissa à part."]),
-
-R("m46","Boulettes d'agneau sauce tomate","plat","agneau","nordafricaine","mijote epice",4,3,45,"F",
- [["viande hachée d'agneau",500,"g","v"],["œufs",1,"p","c"],["chapelure",50,"g","e"],["tomates concassées",800,"g","e"],["oignon",2,"p","l"],["cumin moulu",3,"g","e"],["coriandre fraîche",1,"p","l"],["semoule de couscous",250,"g","e"]],
- ["Mélanger viande, œuf, chapelure, un oignon râpé et le cumin. Former des boulettes.","Les dorer, réserver.","Sauce avec l'oignon restant et les tomates, 15 min.","Remettre les boulettes, mijoter 15 min."]),
-
-R("m47","Houmous, falafels et crudités","plat","legumineuse","moyenorient","froid legumes",3,3,45,"FV",
- [["pois chiches en conserve",800,"g","e"],["tahini",60,"g","e"],["citron",2,"p","l"],["ail",3,"a","l"],["persil plat",2,"p","l"],["cumin moulu",5,"g","e"],["farine",40,"g","e"],["pain pita",4,"p","b"],["concombre",1,"p","l"],["tomate",2,"p","l"],["huile de tournesol",200,"m","e"]],
- ["Mixer la moitié des pois chiches avec tahini, citron et ail : c'est le houmous.","Mixer le reste avec persil, cumin et farine, former des boulettes.","Les frire 4 min. Servir avec pita et crudités."]),
-
-R("m48","Mujaddara — lentilles, riz, oignons frits","plat","legumineuse","moyenorient","mijote",3,4,50,"FV",
- [["lentilles vertes",200,"g","e"],["riz long",200,"g","e"],["oignon",4,"p","l"],["cumin moulu",5,"g","e"],["cannelle",2,"g","e"],["yaourt nature",3,"p","c"],["huile d'olive",5,"s","e"]],
- ["Frire les oignons émincés 20 min jusqu'à brun foncé, réserver.","Cuire les lentilles 20 min, ajouter le riz et les épices, 15 min.","Servir couvert d'oignons frits, avec le yaourt."]),
-
-R("m49","Kefta de bœuf, boulgour et yaourt","plat","boeuf","moyenorient","rapide epice",2,2,30,"",
- [["viande hachée de bœuf",350,"g","v"],["oignon",1,"p","l"],["persil plat",1,"p","l"],["cumin moulu",3,"g","e"],["boulgour",150,"g","e"],["yaourt nature",2,"p","c"],["citron",1,"p","l"],["menthe fraîche",1,"p","l"]],
- ["Mélanger viande, oignon râpé, persil et cumin. Former des brochettes plates.","Cuire 8 min à la poêle bien chaude.","Cuire le boulgour. Sauce yaourt-citron-menthe."]),
-
-R("m50","Fatteh d'aubergines","plat","legume","moyenorient","four legumes",3,2,50,"FV",
- [["aubergine",3,"p","l"],["pois chiches en conserve",400,"g","e"],["yaourt nature",4,"p","c"],["tahini",40,"g","e"],["pain pita",3,"p","b"],["ail",2,"a","l"],["graines de sésame",15,"g","e"],["huile d'olive",4,"s","e"]],
- ["Rôtir les aubergines en cubes 30 min à 200 °C.","Griller les pita brisés au four.","Mélanger yaourt, tahini et ail.","Monter : pain, pois chiches tièdes, aubergines, sauce, sésame."])
-
-];
-
-/* ===== PLATS — lot B ===== */
-const PLATS_B = [
-
-/* ---------- Inde ---------- */
-R("m51","Dhal de lentilles corail","plat","legumineuse","indienne","epice mijote",4,4,35,"V",
- [["lentilles corail",300,"g","e"],["lait de coco",400,"m","e"],["oignon",1,"p","l"],["gingembre frais",20,"g","l"],["ail",2,"a","l"],["tomates concassées",400,"g","e"],["curry en poudre",15,"g","e"],["épinards frais",150,"g","l"],["riz basmati",250,"g","e"]],
- ["Faire suer oignon, ail et gingembre 5 min.","Ajouter le curry, les lentilles rincées, tomates et lait de coco.","Compléter avec 300 ml d'eau, mijoter 20 min.","Épinards en fin de cuisson. Servir avec le riz."]),
-
-R("m52","Curry de pois chiches et épinards","plat","legumineuse","indienne","epice legumes rapide",4,4,30,"FV",
- [["pois chiches en conserve",800,"g","e"],["épinards surgelés",400,"g","s"],["lait de coco",400,"m","e"],["oignon",1,"p","l"],["ail",2,"a","l"],["pâte de curry",30,"g","e"],["riz basmati",250,"g","e"],["citron",1,"p","l"]],
- ["Revenir oignon et ail, ajouter la pâte de curry 1 min.","Verser lait de coco, pois chiches et épinards.","Mijoter 15 min, finir au citron. Servir avec le riz."]),
-
-R("m53","Poulet tikka masala","plat","volaille","indienne","epice mijote",4,3,55,"",
- [["blancs de poulet",600,"g","v"],["yaourt nature",3,"p","c"],["garam masala",12,"g","e"],["tomates concassées",400,"g","e"],["crème liquide entière",150,"m","c"],["oignon",2,"p","l"],["gingembre frais",20,"g","l"],["riz basmati",250,"g","e"]],
- ["Mariner le poulet 20 min dans yaourt et épices.","Le saisir à feu vif, réserver.","Faire fondre oignons et gingembre, ajouter tomates, 20 min.","Remettre le poulet, crémer, 10 min."]),
-
-R("m54","Aloo gobi","plat","legume","indienne","epice legumes",3,3,40,"FV",
- [["chou-fleur",1,"p","l"],["pomme de terre",600,"g","l"],["oignon",1,"p","l"],["curcuma",4,"g","e"],["cumin moulu",5,"g","e"],["gingembre frais",15,"g","l"],["coriandre fraîche",1,"p","l"],["riz basmati",200,"g","e"]],
- ["Faire revenir les épices dans l'huile 1 min.","Ajouter pommes de terre et chou-fleur en bouquets.","Couvrir, cuire 25 min en remuant. Coriandre au service."]),
-
-R("m55","Biryani de légumes","plat","riz","indienne","epice long legumes",4,3,65,"V",
- [["riz basmati",350,"g","e"],["carotte",3,"p","l"],["petits pois surgelés",200,"g","s"],["chou-fleur",1,"p","l"],["oignon",3,"p","l"],["yaourt nature",3,"p","c"],["garam masala",12,"g","e"],["safran",0.2,"g","e"],["noix de cajou",50,"g","e"]],
- ["Frire les oignons émincés jusqu'à brun, réserver.","Cuire les légumes avec yaourt et épices 15 min.","Cuire le riz aux trois quarts.","Alterner riz et légumes, safran, couvrir et cuire 20 min à feu très doux."]),
-
-R("m56","Curry de poisson au coco","plat","poisson","indienne","epice rapide",3,2,35,"",
- [["filets de colin",500,"g","v"],["lait de coco",400,"m","e"],["oignon",1,"p","l"],["tomate",2,"p","l"],["curcuma",4,"g","e"],["graines de coriandre",4,"g","e"],["citron vert",1,"p","l"],["riz basmati",200,"g","e"]],
- ["Faire revenir oignon et épices.","Ajouter tomates et lait de coco, réduire 10 min.","Pocher le poisson 8 min dans la sauce. Citron vert au service."]),
-
-/* ---------- Chine ---------- */
-R("m57","Poulet sauté aux noix de cajou","plat","volaille","chinoise","rapide",2,2,25,"",
- [["blancs de poulet",300,"g","v"],["noix de cajou",80,"g","e"],["poivron rouge",1,"p","l"],["oignons nouveaux",3,"p","l"],["sauce soja",45,"m","e"],["gingembre frais",15,"g","l"],["maïzena",10,"g","e"],["riz long",180,"g","e"]],
- ["Enrober le poulet en dés de maïzena.","Le saisir 5 min à feu vif, réserver.","Sauter poivron et gingembre, remettre le poulet, soja et cajou, 3 min."]),
-
-R("m58","Mapo tofu","plat","tofu","chinoise","rapide epice",2,2,25,"V",
- [["tofu ferme",400,"g","c"],["gochujang",30,"g","e"],["ail",3,"a","l"],["gingembre frais",15,"g","l"],["oignons nouveaux",3,"p","l"],["sauce soja",30,"m","e"],["maïzena",10,"g","e"],["riz long",180,"g","e"]],
- ["Couper le tofu en cubes, le pocher 2 min à l'eau salée.","Faire revenir ail, gingembre et pâte pimentée.","Ajouter 200 ml d'eau, le tofu, lier à la maïzena, 5 min."]),
-
-R("m59","Riz cantonais","plat","riz","chinoise","rapide",3,2,25,"F",
- [["riz long",300,"g","e"],["œufs",3,"p","c"],["jambon blanc",150,"g","v"],["petits pois surgelés",150,"g","s"],["oignons nouveaux",3,"p","l"],["sauce soja",30,"m","e"],["huile de sésame",15,"m","e"]],
- ["Cuire le riz la veille de préférence, bien le refroidir.","Faire une omelette fine, la couper en lanières.","Sauter riz, jambon et petits pois à feu vif, ajouter l'omelette et le soja."]),
-
-R("m60","Bœuf sauté aux oignons","plat","boeuf","chinoise","rapide",2,2,25,"",
- [["steak de bœuf",300,"g","v"],["oignon",3,"p","l"],["sauce soja",45,"m","e"],["gingembre frais",15,"g","l"],["maïzena",10,"g","e"],["huile de sésame",10,"m","e"],["nouilles chinoises",200,"g","e"]],
- ["Émincer le bœuf finement, le mariner 10 min dans soja et maïzena.","Le saisir 2 min à feu très vif, réserver.","Sauter les oignons 5 min, réunir, servir sur les nouilles."]),
-
-R("m61","Soupe de nouilles au porc","plat","porc","chinoise","soupe",3,2,40,"",
- [["échine de porc",400,"g","v"],["nouilles chinoises",250,"g","e"],["chou chinois",1,"p","l"],["gingembre frais",20,"g","l"],["oignons nouveaux",3,"p","l"],["sauce soja",45,"m","e"],["bouillon de volaille",2,"u","e"],["huile de sésame",10,"m","e"]],
- ["Pocher le porc 25 min dans le bouillon au gingembre.","L'émincer, filtrer le bouillon.","Cuire nouilles et chou dedans 5 min. Dresser avec le porc."]),
-
-/* ---------- Japon ---------- */
-R("m62","Donburi de poulet teriyaki","plat","volaille","japonaise","rapide sucresale",2,2,30,"",
- [["blancs de poulet",300,"g","v"],["sauce soja",60,"m","e"],["miel",20,"g","e"],["mirin",30,"m","e"],["riz rond",180,"g","e"],["oignons nouveaux",2,"p","l"],["graines de sésame",10,"g","e"]],
- ["Cuire le riz rond.","Saisir le poulet 6 min par face.","Déglacer avec soja, miel et mirin, laisser napper 3 min.","Trancher, servir sur le riz, sésame et oignons nouveaux."]),
-
-R("m63","Soupe miso et légumes","plat","tofu","japonaise","soupe rapide legumes",2,2,20,"FV",
- [["pâte miso",60,"g","e"],["tofu ferme",200,"g","c"],["nori",2,"p","e"],["oignons nouveaux",2,"p","l"],["champignons de Paris",150,"g","l"],["nouilles udon",200,"g","e"]],
- ["Chauffer 800 ml d'eau avec les champignons, sans bouillir.","Délayer le miso hors du feu.","Ajouter tofu en dés, nori et nouilles cuites."]),
-
-R("m64","Katsu de porc et chou","plat","porc","japonaise","rapide",2,2,35,"",
- [["échine de porc",300,"g","v"],["panko",100,"g","e"],["œufs",2,"p","c"],["farine",50,"g","e"],["chou blanc",1,"p","l"],["riz rond",180,"g","e"],["huile de tournesol",300,"m","e"],["sauce soja",20,"m","e"]],
- ["Aplatir le porc, le paner : farine, œuf, panko.","Frire 4 min par face, égoutter.","Émincer le chou très fin. Servir avec le riz."]),
-
-R("m65","Curry japonais aux légumes","plat","legume","japonaise","mijote legumes",4,4,50,"FV",
- [["pomme de terre",600,"g","l"],["carotte",3,"p","l"],["oignon",2,"p","l"],["curry en poudre",15,"g","e"],["farine",30,"g","e"],["sauce soja",30,"m","e"],["riz rond",300,"g","e"],["bouillon de légumes",2,"u","e"]],
- ["Faire revenir les légumes 10 min.","Couvrir de bouillon, cuire 25 min.","Faire un roux au curry, l'incorporer et épaissir 10 min."]),
-
-/* ---------- Thaïlande, Vietnam, Corée ---------- */
-R("m66","Curry vert de poulet","plat","volaille","thai","epice rapide",3,3,35,"",
- [["blancs de poulet",450,"g","v"],["curry vert en pâte",50,"g","e"],["lait de coco",400,"m","e"],["aubergine",1,"p","l"],["haricots verts",150,"g","l"],["sauce poisson",20,"m","e"],["basilic frais",1,"p","l"],["riz basmati",200,"g","e"]],
- ["Faire chauffer la pâte de curry dans un peu de lait de coco.","Ajouter le poulet, 5 min.","Verser le reste du lait de coco et les légumes, mijoter 15 min.","Sauce poisson et basilic au service."]),
-
-R("m67","Pad thaï aux crevettes","plat","fruitsdemer","thai","rapide",2,1,30,"",
- [["nouilles de riz",200,"g","e"],["crevettes décortiquées",250,"g","v"],["œufs",2,"p","c"],["germes de soja",150,"g","l"],["cacahuètes",50,"g","e"],["sauce poisson",30,"m","e"],["citron vert",1,"p","l"],["sucre roux",15,"g","e"],["oignons nouveaux",3,"p","l"]],
- ["Réhydrater les nouilles 10 min à l'eau tiède.","Sauter les crevettes, pousser sur le côté, brouiller les œufs.","Ajouter nouilles, sauce poisson, sucre et citron, 3 min.","Germes de soja et cacahuètes concassées."]),
-
-R("m68","Salade thaï de bœuf","plat","boeuf","thai","salade froid cru epice rapide",2,1,25,"F",
- [["steak de bœuf",300,"g","v"],["concombre",1,"p","l"],["tomates cerises",200,"g","l"],["oignon rouge",1,"p","l"],["menthe fraîche",1,"p","l"],["coriandre fraîche",1,"p","l"],["sauce poisson",30,"m","e"],["citron vert",2,"p","l"],["piment frais",1,"p","l"]],
- ["Saisir le bœuf 2 min par face, laisser reposer puis trancher fin.","Mélanger sauce poisson, citron vert et piment.","Réunir avec les crudités et les herbes."]),
-
-R("m69","Bo bun au porc","plat","porc","vietnamienne","salade froid rapide",2,1,35,"F",
- [["échine de porc",300,"g","v"],["nouilles de riz",200,"g","e"],["carotte",2,"p","l"],["concombre",1,"p","l"],["salade verte",1,"p","l"],["menthe fraîche",1,"p","l"],["cacahuètes",50,"g","e"],["sauce poisson",30,"m","e"],["citron vert",1,"p","l"],["sucre",15,"g","e"]],
- ["Mariner le porc émincé dans sauce poisson et sucre, 15 min.","Cuire les nouilles, les rafraîchir.","Saisir le porc 6 min à feu vif.","Dresser nouilles, crudités, porc, sauce nuoc-mâm, cacahuètes."]),
-
-R("m70","Phở de poulet","plat","volaille","vietnamienne","soupe long",3,2,70,"",
- [["cuisses de poulet",600,"g","v"],["nouilles de riz",250,"g","e"],["gingembre frais",30,"g","l"],["oignon",2,"p","l"],["cannelle",3,"g","e"],["cinq-épices",4,"g","e"],["sauce poisson",30,"m","e"],["coriandre fraîche",1,"p","l"],["germes de soja",150,"g","l"]],
- ["Griller oignon et gingembre à sec 5 min.","Pocher le poulet 45 min avec les épices dans 1,5 l d'eau.","Filtrer, assaisonner à la sauce poisson.","Dresser nouilles, poulet effiloché, herbes et germes."]),
-
-R("m71","Bibimbap","plat","riz","coreenne","epice legumes",2,2,40,"V",
- [["riz rond",200,"g","e"],["carotte",2,"p","l"],["épinards frais",200,"g","l"],["champignons de Paris",200,"g","l"],["œufs",2,"p","c"],["gochujang",40,"g","e"],["huile de sésame",15,"m","e"],["graines de sésame",10,"g","e"]],
- ["Cuire le riz.","Cuire séparément carottes, épinards et champignons, assaisonner chacun au sésame.","Dresser en secteurs sur le riz, œuf au plat au centre, gochujang à part."]),
-
-R("m72","Porc sauté au kimchi","plat","porc","coreenne","rapide epice",2,2,25,"",
- [["poitrine de porc",300,"g","v"],["kimchi",250,"g","c"],["oignon",1,"p","l"],["gochujang",25,"g","e"],["oignons nouveaux",2,"p","l"],["huile de sésame",10,"m","e"],["riz rond",180,"g","e"]],
- ["Saisir le porc en lamelles 6 min.","Ajouter oignon et kimchi, 5 min à feu vif.","Assaisonner au gochujang et au sésame. Servir sur le riz."]),
-
-/* ---------- Créole, Amériques ---------- */
-R("m73","Rougail saucisse","plat","porc","creole","epice mijote",4,4,55,"",
- [["saucisses fumées",600,"g","v"],["tomates concassées",800,"g","e"],["oignon",3,"p","l"],["gingembre frais",20,"g","l"],["curcuma",4,"g","e"],["thym",2,"g","e"],["piment frais",1,"p","l"],["riz long",300,"g","e"]],
- ["Blanchir les saucisses 10 min, les couper et les dorer.","Ajouter oignons, gingembre et curcuma, 5 min.","Verser les tomates, thym et piment. Mijoter 30 min."]),
-
-R("m74","Colombo de poulet","plat","volaille","creole","epice mijote",4,4,55,"",
- [["cuisses de poulet",800,"g","v"],["courgette",2,"p","l"],["patate douce",400,"g","l"],["oignon",2,"p","l"],["curry en poudre",15,"g","e"],["citron vert",1,"p","l"],["ail",3,"a","l"],["riz long",250,"g","e"]],
- ["Mariner le poulet au citron vert, ail et curry 20 min.","Le dorer, ajouter oignons et légumes.","Couvrir d'eau à hauteur, mijoter 35 min."]),
-
-R("m75","Chili sin carne","plat","legumineuse","mexicaine","epice mijote",4,4,40,"FV",
- [["haricots rouges en conserve",800,"g","e"],["tomates concassées",800,"g","e"],["oignon",2,"p","l"],["poivron rouge",2,"p","l"],["maïs en conserve",150,"g","e"],["cumin moulu",5,"g","e"],["paprika fumé",5,"g","e"],["ail",3,"a","l"],["riz long",300,"g","e"]],
- ["Faire revenir oignons, poivrons et ail 8 min.","Ajouter les épices 1 min.","Verser tomates, haricots et maïs, mijoter 25 min. Servir sur le riz."]),
-
-R("m76","Fajitas de poulet","plat","volaille","mexicaine","rapide epice",2,2,30,"",
- [["blancs de poulet",350,"g","v"],["poivron rouge",1,"p","l"],["poivron vert",1,"p","l"],["oignon",1,"p","l"],["tortillas de blé",6,"p","b"],["paprika fumé",5,"g","e"],["cumin moulu",4,"g","e"],["citron vert",1,"p","l"],["crème fraîche épaisse",100,"m","c"]],
- ["Émincer poulet et légumes, assaisonner aux épices.","Saisir le tout 10 min à feu vif.","Tiédir les tortillas, servir avec crème et citron vert."]),
-
-R("m77","Enchiladas aux haricots noirs","plat","legumineuse","mexicaine","four epice fromage",3,3,50,"V",
- [["haricots noirs en conserve",600,"g","e"],["tortillas de blé",8,"p","b"],["passata",400,"g","e"],["oignon",1,"p","l"],["gruyère râpé",150,"g","c"],["cumin moulu",5,"g","e"],["piment en poudre",3,"g","e"],["coriandre fraîche",1,"p","l"]],
- ["Écraser grossièrement les haricots avec l'oignon revenu et les épices.","Garnir et rouler les tortillas.","Napper de passata, couvrir de fromage, 25 min à 190 °C."]),
-
-R("m78","Feijoada express","plat","porc","sudamericaine","mijote",4,4,60,"",
- [["haricots noirs en conserve",800,"g","e"],["poitrine de porc",300,"g","v"],["saucisses fumées",250,"g","v"],["oignon",2,"p","l"],["ail",4,"a","l"],["laurier",1,"g","e"],["orange",1,"p","l"],["riz long",300,"g","e"]],
- ["Dorer porc et saucisses.","Ajouter oignons, ail et laurier.","Verser les haricots avec leur jus et 300 ml d'eau, mijoter 40 min.","Servir avec le riz et des quartiers d'orange."]),
-
-R("m79","Ceviche de cabillaud","plat","poisson","sudamericaine","salade froid cru rapide",2,1,25,"F",
- [["filets de cabillaud",300,"g","v"],["citron vert",5,"p","l"],["oignon rouge",1,"p","l"],["coriandre fraîche",1,"p","l"],["patate douce",300,"g","l"],["piment frais",1,"p","l"],["maïs en conserve",100,"g","e"]],
- ["Couper le poisson en dés, le couvrir de jus de citron vert 15 min.","Ajouter oignon émincé, piment et coriandre.","Servir avec la patate douce cuite en rondelles et le maïs."]),
-
-R("m80","Chili con carne","plat","boeuf","americaine","epice mijote",4,4,55,"",
- [["viande hachée de bœuf",500,"g","v"],["haricots rouges en conserve",600,"g","e"],["tomates concassées",800,"g","e"],["oignon",2,"p","l"],["poivron rouge",1,"p","l"],["cumin moulu",5,"g","e"],["piment en poudre",4,"g","e"],["chocolat noir",15,"g","e"],["riz long",300,"g","e"]],
- ["Saisir la viande, réserver.","Faire fondre oignons et poivron, ajouter les épices.","Réunir avec tomates et haricots, mijoter 35 min.","Ajouter le chocolat en fin de cuisson."]),
-
-R("m81","Mac and cheese au four","plat","pates","americaine","four fromage",3,3,40,"V",
- [["macaronis",300,"g","e"],["beurre",50,"g","c"],["farine",50,"g","e"],["lait",600,"m","c"],["cheddar",250,"g","c"],["chapelure",40,"g","e"],["noix de muscade",1,"n","e"]],
- ["Cuire les pâtes 2 min de moins que le temps indiqué.","Faire une béchamel, y fondre le cheddar.","Mélanger, verser dans un plat, chapelure sur le dessus.","Gratiner 20 min à 200 °C."]),
-
-R("m82","Burger maison et potatoes","plat","boeuf","americaine","rapide fromage",2,1,35,"",
- [["viande hachée de bœuf",300,"g","v"],["pain de mie",4,"t","b"],["cheddar",80,"g","c"],["oignon",1,"p","l"],["tomate",1,"p","l"],["salade verte",1,"p","l"],["pomme de terre",500,"g","l"],["paprika fumé",4,"g","e"],["mayonnaise",30,"g","e"]],
- ["Couper les pommes de terre en quartiers, paprika et huile, 30 min à 200 °C.","Façonner deux steaks, les saisir 3 min par face, fromage dessus.","Toaster le pain et monter le burger."]),
-
-/* ---------- Europe centrale, Royaume-Uni, Afrique ---------- */
-R("m83","Goulash de bœuf","plat","boeuf","europecentrale","mijote long epice",4,4,95,"",
- [["bœuf à braiser",700,"g","v"],["oignon",3,"p","l"],["poivron rouge",2,"p","l"],["paprika fumé",15,"g","e"],["tomates concassées",400,"g","e"],["pomme de terre",600,"g","l"],["crème fraîche épaisse",100,"m","c"],["laurier",1,"g","e"]],
- ["Faire fondre les oignons 15 min, ajouter le paprika hors du feu.","Ajouter la viande, les tomates et de l'eau à hauteur.","Mijoter 1 h 15, ajouter pommes de terre et poivrons 30 min avant la fin.","Crème au service."]),
-
-R("m84","Choucroute garnie express","plat","porc","europecentrale","mijote",4,3,60,"",
- [["chou blanc",1,"p","l"],["saucisses fumées",400,"g","v"],["poitrine de porc",300,"g","v"],["pomme de terre",700,"g","l"],["oignon",1,"p","l"],["bière blonde",330,"m","d"],["laurier",1,"g","e"],["moutarde",30,"g","e"]],
- ["Rincer la choucroute, la faire suer avec l'oignon.","Mouiller à la bière, ajouter laurier et poitrine, 40 min.","Ajouter saucisses et pommes de terre 20 min avant la fin."]),
-
-R("m85","Boulettes suédoises et purée","plat","porc","europecentrale","mijote",4,3,50,"",
- [["viande hachée de bœuf",300,"g","v"],["échine de porc",200,"g","v"],["chapelure",50,"g","e"],["œufs",1,"p","c"],["oignon",1,"p","l"],["crème liquide entière",200,"m","c"],["farine",25,"g","e"],["pomme de terre",800,"g","l"],["beurre",50,"g","c"],["confiture",40,"g","e"]],
- ["Mixer les viandes avec oignon, chapelure et œuf, former des boulettes.","Les dorer, réserver.","Roux, crème et bouillon pour la sauce, remettre les boulettes 15 min.","Servir avec la purée et une cuillère de confiture."]),
-
-R("m86","Shepherd's pie","plat","agneau","britannique","four long",4,3,70,"",
- [["viande hachée d'agneau",500,"g","v"],["pomme de terre",900,"g","l"],["carotte",3,"p","l"],["oignon",2,"p","l"],["petits pois surgelés",150,"g","s"],["concentré de tomate",20,"g","e"],["beurre",50,"g","c"],["lait",150,"m","c"],["romarin",2,"g","e"]],
- ["Cuire les pommes de terre, les écraser au beurre et au lait.","Faire revenir viande, oignons et carottes, concentré de tomate, 25 min.","Ajouter les petits pois, couvrir de purée, gratiner 25 min à 200 °C."]),
-
-R("m87","Fish pie","plat","poisson","britannique","four",3,3,60,"",
- [["filets de colin",500,"g","v"],["pomme de terre",800,"g","l"],["lait",500,"m","c"],["beurre",60,"g","c"],["farine",40,"g","e"],["petits pois surgelés",150,"g","s"],["aneth",1,"p","l"],["gruyère râpé",60,"g","c"]],
- ["Pocher le poisson 6 min dans le lait, le réserver, garder le lait.","Faire une béchamel avec ce lait, ajouter aneth et petits pois.","Émietter le poisson dedans, couvrir de purée et de fromage.","Gratiner 25 min à 190 °C."]),
-
-R("m88","Mafé de poulet","plat","volaille","africaine","mijote epice",4,4,60,"",
- [["cuisses de poulet",800,"g","v"],["beurre de cacahuète",120,"g","e"],["tomates concassées",400,"g","e"],["oignon",2,"p","l"],["patate douce",400,"g","l"],["carotte",2,"p","l"],["piment frais",1,"p","l"],["riz long",300,"g","e"]],
- ["Dorer le poulet, réserver.","Faire fondre les oignons, ajouter tomates et beurre de cacahuète délayé.","Remettre le poulet et les légumes, mijoter 40 min."]),
-
-R("m89","Yassa de poulet","plat","volaille","africaine","mijote",4,4,55,"F",
- [["cuisses de poulet",800,"g","v"],["oignon",5,"p","l"],["citron",3,"p","l"],["moutarde",30,"g","e"],["laurier",1,"g","e"],["piment frais",1,"p","l"],["riz long",300,"g","e"]],
- ["Mariner poulet et oignons émincés dans citron et moutarde, 30 min minimum.","Dorer le poulet, réserver.","Faire compoter les oignons 20 min, remettre le poulet, 20 min."]),
-
-R("m90","Poêlée de haricots blancs au chorizo","plat","legumineuse","espagnole","rapide",3,3,25,"F",
- [["haricots blancs en conserve",800,"g","e"],["chorizo",150,"g","v"],["oignon",1,"p","l"],["ail",2,"a","l"],["paprika fumé",4,"g","e"],["persil plat",1,"p","l"],["huile d'olive",2,"s","e"]],
- ["Faire dorer le chorizo en rondelles, réserver le gras.","Revenir oignon et ail dedans.","Ajouter les haricots égouttés et le paprika, 10 min. Persil."])
-
-];
-
-/* ===== DESSERTS =====
-   Le générateur distingue :
-     - semaine : minutes <= seuil rapide
-     - week-end : batch >= 4 et keeps >= 2 (fait le samedi, tient le dimanche)
-   traits utiles au quiz : chocolat fruit creme patisserie froid rapide
-   ================================================================== */
-const DESSERTS = [
-
-/* ---------- simples, pour la semaine ---------- */
-R("d01","Compote pommes-cannelle","dessert","fruit","francaise","fruit rapide froid",5,5,20,"FV",
- [["pomme",8,"p","l"],["cannelle",2,"g","e"],["sucre",30,"g","e"],["citron",1,"p","l"]],
- ["Peler et couper les pommes en morceaux.","Cuire 15 min à couvert avec 5 cl d'eau, le sucre et la cannelle.","Écraser à la fourchette, citronner. Se garde 5 jours au frais."]),
-
-R("d02","Riz au lait vanillé","dessert","creme","francaise","creme froid",4,4,35,"FV",
- [["riz rond",150,"g","e"],["lait",1,"l","c"],["sucre",80,"g","e"],["vanille",1,"p","e"]],
- ["Blanchir le riz 2 min à l'eau bouillante, égoutter.","Le cuire 30 min dans le lait vanillé à feu très doux, en remuant.","Ajouter le sucre en fin de cuisson."]),
-
-R("d03","Salade de fruits frais","dessert","fruit","francaise","fruit froid rapide",3,2,15,"FV",
- [["orange",2,"p","l"],["banane",2,"p","l"],["pomme",2,"p","l"],["citron vert",1,"p","l"],["miel",20,"g","e"],["menthe fraîche",1,"p","l"]],
- ["Couper tous les fruits en dés réguliers.","Arroser de jus de citron vert et de miel.","Menthe ciselée, réserver au frais 30 min."]),
-
-R("d04","Yaourt, miel et noix","dessert","creme","francaise","creme rapide froid",2,1,5,"FV",
- [["yaourt nature",2,"p","c"],["miel",30,"g","e"],["noix",40,"g","e"]],
- ["Verser le yaourt en coupe.","Concasser les noix, les torréfier 2 min à sec.","Miel et noix par-dessus."]),
-
-R("d05","Mousse au chocolat","dessert","chocolat","francaise","chocolat froid",4,3,20,"FV",
- [["chocolat noir",200,"g","e"],["œufs",6,"p","c"],["sucre",30,"g","e"]],
- ["Fondre le chocolat au bain-marie, incorporer les jaunes.","Monter les blancs en neige ferme avec le sucre.","Incorporer délicatement en trois fois. 4 h au frais."]),
-
-R("d06","Fromage blanc et coulis de fruits rouges","dessert","creme","francaise","creme fruit froid rapide",3,3,10,"FV",
- [["fromage blanc",500,"g","c"],["framboises",200,"g","l"],["sucre",40,"g","e"],["citron",1,"p","l"]],
- ["Mixer les framboises avec le sucre et un trait de citron.","Passer au tamis si besoin.","Napper le fromage blanc au moment de servir."]),
-
-R("d07","Bananes rôties au miel","dessert","fruit","creole","fruit rapide",2,1,20,"FV",
- [["banane",4,"p","l"],["miel",40,"g","e"],["beurre",20,"g","c"],["citron vert",1,"p","l"],["rhum",20,"m","d"]],
- ["Fendre les bananes dans la longueur.","Beurrer, arroser de miel, de rhum et de citron vert.","Enfourner 15 min à 200 °C."]),
-
-R("d08","Semoule au lait","dessert","creme","francaise","creme froid rapide",4,4,25,"FV",
- [["semoule de couscous",120,"g","e"],["lait",800,"m","c"],["sucre",70,"g","e"],["sucre vanillé",1,"p","e"],["raisins secs",50,"g","e"]],
- ["Porter le lait sucré à frémissement.","Verser la semoule en pluie, cuire 8 min en remuant.","Ajouter les raisins, verser en ramequins, laisser prendre."]),
-
-R("d09","Pommes au four","dessert","fruit","francaise","fruit four",4,3,35,"FV",
- [["pomme",4,"p","l"],["beurre",40,"g","c"],["sucre roux",60,"g","e"],["cannelle",2,"g","e"],["raisins secs",40,"g","e"]],
- ["Évider les pommes sans percer le fond.","Garnir de beurre, sucre roux, cannelle et raisins.","Enfourner 30 min à 180 °C."]),
-
-R("d10","Crumble minute aux pommes","dessert","fruit","britannique","fruit four",3,3,30,"FV",
- [["pomme",5,"p","l"],["farine",100,"g","e"],["beurre",80,"g","c"],["sucre roux",70,"g","e"],["flocons d'avoine",40,"g","e"]],
- ["Couper les pommes en dés, les répartir dans un plat.","Sabler farine, beurre, sucre et flocons du bout des doigts.","Couvrir et enfourner 25 min à 190 °C."]),
-
-R("d11","Pain perdu","dessert","patisserie","francaise","rapide",2,1,20,"V",
- [["pain de mie",6,"t","b"],["œufs",3,"p","c"],["lait",300,"m","c"],["sucre",50,"g","e"],["beurre",30,"g","c"],["sucre vanillé",1,"p","e"]],
- ["Battre œufs, lait et sucres.","Tremper les tranches 1 min de chaque côté.","Dorer au beurre 3 min par face."]),
-
-R("d12","Poires pochées au vin épicé","dessert","fruit","francaise","fruit froid",4,5,35,"FV",
- [["poire",4,"p","l"],["vin rouge",500,"m","d"],["sucre",120,"g","e"],["cannelle",3,"g","e"],["orange",1,"p","l"]],
- ["Peler les poires en gardant la queue.","Les pocher 25 min dans le vin sucré aux épices et au zeste d'orange.","Réduire le sirop de moitié et napper. Meilleures le lendemain."]),
-
-R("d13","Gâteau au yaourt","dessert","patisserie","francaise","patisserie four",6,4,40,"FV",
- [["yaourt nature",1,"p","c"],["farine",220,"g","e"],["sucre",150,"g","e"],["œufs",3,"p","c"],["huile de tournesol",80,"m","e"],["levure chimique",1,"p","e"],["citron",1,"p","l"]],
- ["Mélanger yaourt, sucre et œufs.","Ajouter farine, levure, huile et zeste de citron.","Enfourner 30 min à 180 °C."]),
-
-R("d14","Panna cotta au coulis","dessert","creme","italienne","creme froid rapide",4,4,20,"FV",
- [["crème liquide entière",500,"m","c"],["sucre",70,"g","e"],["vanille",1,"p","e"],["gélatine",3,"p","e"],["framboises",150,"g","l"]],
- ["Chauffer crème, sucre et vanille sans bouillir.","Incorporer la gélatine ramollie, verser en verrines.","4 h au frais. Coulis de framboises au service."]),
-
-R("d15","Brownie aux noix","dessert","chocolat","americaine","chocolat patisserie four",8,5,40,"FV",
- [["chocolat noir",200,"g","e"],["beurre",150,"g","c"],["sucre",180,"g","e"],["œufs",3,"p","c"],["farine",80,"g","e"],["noix",80,"g","e"]],
- ["Fondre chocolat et beurre.","Ajouter sucre, œufs puis farine et noix concassées.","Enfourner 22 min à 180 °C : le centre doit rester fondant."]),
-
-R("d16","Cookies au chocolat","dessert","chocolat","americaine","chocolat patisserie four",12,7,30,"FV",
- [["farine",250,"g","e"],["beurre",125,"g","c"],["sucre roux",150,"g","e"],["œufs",1,"p","c"],["chocolat noir",150,"g","e"],["levure chimique",1,"p","e"]],
- ["Crémer beurre et sucre, ajouter l'œuf.","Incorporer farine, levure et chocolat en morceaux.","Former des boules, cuire 11 min à 180 °C."]),
-
-R("d17","Madeleines","dessert","patisserie","francaise","patisserie four",12,5,30,"FV",
- [["farine",150,"g","e"],["beurre",125,"g","c"],["sucre",130,"g","e"],["œufs",3,"p","c"],["levure chimique",1,"p","e"],["citron",1,"p","l"]],
- ["Battre œufs et sucre, ajouter farine, levure et zeste.","Incorporer le beurre fondu, reposer 30 min au frais.","Cuire 9 min à 200 °C pour obtenir la bosse."]),
-
-R("d18","Smoothie bowl banane-fruits rouges","dessert","fruit","americaine","fruit froid rapide",2,1,10,"FV",
- [["banane",3,"p","l"],["framboises",150,"g","l"],["yaourt nature",2,"p","c"],["flocons d'avoine",40,"g","e"],["miel",20,"g","e"]],
- ["Mixer bananes, framboises et yaourt jusqu'à texture épaisse.","Verser en bol.","Flocons, miel et quelques fruits entiers par-dessus."]),
-
-R("d19","Clafoutis aux cerises","dessert","patisserie","francaise","fruit patisserie four",4,3,45,"FV",
- [["cerises",500,"g","l"],["œufs",3,"p","c"],["farine",80,"g","e"],["sucre",100,"g","e"],["lait",300,"m","c"],["beurre",20,"g","c"]],
- ["Beurrer un plat, y répartir les cerises.","Battre œufs, sucre, farine puis lait.","Verser et enfourner 35 min à 180 °C."]),
-
-R("d20","Mug cake au chocolat","dessert","chocolat","americaine","chocolat rapide",1,1,6,"V",
- [["farine",30,"g","e"],["cacao en poudre",15,"g","e"],["sucre",30,"g","e"],["lait",45,"m","c"],["huile de tournesol",20,"m","e"],["levure chimique",1,"p","e"]],
- ["Mélanger tous les ingrédients directement dans un mug.","Micro-ondes 90 secondes à pleine puissance.","Laisser tiédir 1 min avant de manger."]),
-
-/* ---------- plus élaborés, pour le week-end ---------- */
-R("d21","Tarte Tatin","dessert","fruit","francaise","fruit patisserie four",6,3,80,"FV",
- [["pomme",8,"p","l"],["pâte feuilletée",1,"p","c"],["beurre",80,"g","c"],["sucre",180,"g","e"],["vanille",1,"p","e"]],
- ["Faire un caramel à sec, ajouter le beurre.","Ranger les quartiers de pommes serrés dessus, cuire 20 min à feu doux.","Couvrir de pâte en rentrant les bords, 30 min à 190 °C.","Démouler tiède."]),
-
-R("d22","Fondant au chocolat","dessert","chocolat","francaise","chocolat patisserie four",6,4,50,"FV",
- [["chocolat noir",250,"g","e"],["beurre",180,"g","c"],["œufs",5,"p","c"],["sucre",150,"g","e"],["farine",60,"g","e"]],
- ["Fondre chocolat et beurre au bain-marie.","Blanchir œufs et sucre, réunir, ajouter la farine.","Cuire 22 min à 180 °C. Meilleur le lendemain, bien frais."]),
-
-R("d23","Tarte au citron meringuée","dessert","patisserie","francaise","fruit patisserie four",8,3,95,"FV",
- [["pâte brisée",1,"p","c"],["citron",5,"p","l"],["œufs",5,"p","c"],["sucre",250,"g","e"],["beurre",100,"g","c"],["maïzena",30,"g","e"]],
- ["Cuire le fond de tarte à blanc 20 min.","Cuire jus de citron, jaunes, sucre et maïzena jusqu'à épaississement, monter au beurre.","Garnir, monter les blancs en meringue avec le sucre restant.","Pocher et dorer 8 min à 200 °C."]),
-
-R("d24","Cheesecake aux spéculoos","dessert","creme","americaine","creme patisserie four",8,4,100,"FV",
- [["spéculoos",250,"g","e"],["beurre",100,"g","c"],["ricotta",500,"g","c"],["mascarpone",250,"g","c"],["œufs",3,"p","c"],["sucre",150,"g","e"],["citron",1,"p","l"]],
- ["Mixer les spéculoos avec le beurre fondu, tasser au fond d'un moule.","Battre fromages, sucre, œufs et zeste.","Cuire 50 min à 150 °C, laisser refroidir dans le four.","Une nuit au frais avant de servir."]),
-
-R("d25","Tiramisu","dessert","creme","italienne","creme froid",6,3,45,"FV",
- [["mascarpone",500,"g","c"],["œufs",4,"p","c"],["sucre",120,"g","e"],["biscuits à la cuillère",250,"g","e"],["cacao en poudre",20,"g","e"],["chocolat noir",50,"g","e"]],
- ["Blanchir jaunes et sucre, incorporer le mascarpone.","Ajouter les blancs montés en neige.","Tremper rapidement les biscuits dans un café fort, alterner les couches.","6 h au frais, cacao au dernier moment."]),
-
-R("d26","Far breton aux pruneaux","dessert","patisserie","francaise","patisserie four",6,4,70,"FV",
- [["farine",150,"g","e"],["œufs",4,"p","c"],["sucre",130,"g","e"],["lait",750,"m","c"],["abricots secs",200,"g","e"],["beurre",30,"g","c"],["rhum",30,"m","d"]],
- ["Battre farine, œufs et sucre, détendre au lait petit à petit.","Ajouter le rhum, laisser reposer 30 min.","Répartir les fruits dans un plat beurré, verser l'appareil.","Cuire 45 min à 190 °C."]),
-
-R("d27","Tarte aux pommes","dessert","fruit","francaise","fruit patisserie four",6,3,75,"FV",
- [["pâte brisée",1,"p","c"],["pomme",6,"p","l"],["sucre",100,"g","e"],["beurre",40,"g","c"],["poudre d'amandes",60,"g","e"],["cannelle",2,"g","e"]],
- ["Étaler la pâte, semer la poudre d'amandes sur le fond.","Ranger les lamelles de pommes en rosace.","Sucre, cannelle et noisettes de beurre.","Cuire 45 min à 180 °C."]),
-
-R("d28","Flan pâtissier","dessert","creme","francaise","creme patisserie four",8,4,95,"FV",
- [["pâte brisée",1,"p","c"],["lait",1,"l","c"],["œufs",4,"p","c"],["sucre",200,"g","e"],["maïzena",90,"g","e"],["vanille",1,"p","e"]],
- ["Chauffer le lait vanillé.","Blanchir œufs, sucre et maïzena, verser le lait chaud, épaissir sur le feu.","Verser sur le fond de pâte, cuire 40 min à 180 °C.","Refroidir complètement avant de couper."]),
-
-R("d29","Crumble aux fruits rouges","dessert","fruit","britannique","fruit four",6,3,55,"FV",
- [["framboises",400,"g","l"],["pomme",3,"p","l"],["farine",180,"g","e"],["beurre",130,"g","c"],["sucre roux",130,"g","e"],["poudre d'amandes",60,"g","e"]],
- ["Répartir fruits rouges et pommes en dés dans un plat.","Sabler farine, beurre, sucre et amandes.","Couvrir généreusement, cuire 40 min à 180 °C."]),
-
-R("d30","Baklava aux amandes","dessert","patisserie","moyenorient","patisserie four sucresale",12,10,80,"FV",
- [["pâte filo",1,"p","c"],["poudre d'amandes",250,"g","e"],["noix",100,"g","e"],["beurre",200,"g","c"],["miel",200,"g","e"],["sucre",150,"g","e"],["citron",1,"p","l"],["cannelle",3,"g","e"]],
- ["Alterner feuilles de filo beurrées et couches de fruits secs sucrés.","Prédécouper en losanges avant cuisson.","Cuire 45 min à 170 °C.","Arroser du sirop miel-citron tiède, laisser imbiber une nuit."]),
-
-R("d31","Gâteau basque","dessert","patisserie","francaise","patisserie four creme",8,4,90,"FV",
- [["farine",300,"g","e"],["beurre",180,"g","c"],["sucre",200,"g","e"],["œufs",4,"p","c"],["lait",400,"m","c"],["maïzena",40,"g","e"],["levure chimique",1,"p","e"],["rhum",20,"m","d"]],
- ["Préparer une pâte sablée, reposer 30 min au frais.","Faire une crème pâtissière au rhum, refroidir.","Foncer, garnir, couvrir d'un second disque, dorer.","Cuire 45 min à 180 °C."]),
-
-R("d32","Charlotte aux fraises","dessert","fruit","francaise","fruit creme froid",6,2,60,"FV",
- [["fraises",600,"g","l"],["biscuits à la cuillère",250,"g","e"],["crème liquide entière",400,"m","c"],["sucre",120,"g","e"],["gélatine",4,"p","e"],["citron",1,"p","l"]],
- ["Tapisser un moule de biscuits imbibés de sirop de fraises.","Mixer la moitié des fraises, ajouter la gélatine fondue.","Incorporer la crème montée, alterner avec les fraises coupées.","6 h au frais minimum."]),
-
-R("d33","Cannelés bordelais","dessert","patisserie","francaise","patisserie four",12,3,95,"FV",
- [["lait",500,"m","c"],["œufs",2,"p","c"],["sucre",250,"g","e"],["farine",100,"g","e"],["beurre",50,"g","c"],["vanille",1,"p","e"],["rhum",50,"m","d"]],
- ["Faire une pâte lisse comme une pâte à crêpes, reposer 24 h au frais si possible.","Remplir les moules aux trois quarts.","Cuire 15 min à 230 °C puis 45 min à 180 °C."]),
-
-R("d34","Gâteau marbré","dessert","chocolat","francaise","chocolat patisserie four",8,4,60,"FV",
- [["farine",250,"g","e"],["beurre",180,"g","c"],["sucre",200,"g","e"],["œufs",4,"p","c"],["cacao en poudre",30,"g","e"],["levure chimique",1,"p","e"],["lait",80,"m","c"]],
- ["Préparer une pâte à quatre-quarts, la séparer en deux.","Ajouter le cacao et le lait dans une moitié.","Verser en alternance dans un moule à cake, marbrer au couteau.","Cuire 45 min à 170 °C."])
-
-];
 
 /* ==================================================================
    QUIZ DE GOÛTS
@@ -1626,7 +1113,27 @@ const EN = {
     "Indicative French 2026 prices, adjusted per aisle by chain. Editable in Settings.",
   "ex : moules, pignons de pin": "e.g. mussels, pine nuts",
   "Semaine": "Week",
-  "Utilisé dans": "Used in", "Il vous en restera": "You will have left over", "Voir les recettes": "See the recipes", "Aucune recette.": "No recipe.",
+  "Utilisé dans": "Used in", "Il vous en restera": "You will have left over",
+  "Chercher un plat, une cuisine, un ingrédient": "Search a dish, a cuisine, an ingredient",
+  "Afficher plus": "Show more", "Aucune recette ne correspond.": "No recipe matches.",
+  "30 min ou moins": "30 min or less", "Végétarien": "Vegetarian", "De saison": "In season",
+  "Bien notées": "Well rated", "Jamais faites": "Never made",
+  "Importer": "Import", "Importer une recette": "Import a recipe",
+  "Analyser le texte": "Parse the text", "Analyser avec l'IA": "Parse with AI",
+  "Depuis une adresse": "From a web address", "Relire avant d'ajouter": "Check before adding",
+  "Ajouter au pool": "Add to the pool", "Recette ajoutée": "Recipe added",
+  "À vérifier": "Worth checking", "Analyse en cours…": "Parsing…", "Lecture de la page…": "Reading the page…",
+  "Collez d'abord une recette.": "Paste a recipe first.", "Entrez une adresse.": "Enter an address.",
+  "Page illisible depuis le navigateur. Copiez son texte dans le cadre.":
+    "That page can't be read from the browser. Copy its text into the box instead.",
+  "Collez le texte d'une recette, ou son adresse. Vous relisez et corrigez avant qu'elle rejoigne le pool.":
+    "Paste a recipe's text, or its address. You review and correct it before it joins the pool.",
+  "Recettes proposées": "Suggested recipes", "Voir le détail": "See the detail",
+  "Ajouter la sélection": "Add the selected ones", "Tout cocher": "Select all", "Tout décocher": "Deselect all",
+  "sur": "of", "sélectionnées": "selected", "portions": "servings",
+  "Rien n'entre dans le pool avant que vous validiez.": "Nothing joins the pool until you confirm.",
+  "Recettes demandées en une fois": "Recipes requested at once",
+  "‹ Annuler": "‹ Cancel", "déjà dans le pool": "already in the pool", "Voir les recettes": "See the recipes", "Aucune recette.": "No recipe.",
   "Saison et température": "Season and temperature", "hors saison": "out of season",
   "ingrédients hors saison": "ingredients out of season",
   "ingrédient hors saison": "ingredient out of season", "tout est de saison": "everything is in season",
@@ -1775,7 +1282,7 @@ Object.assign(EN, {
 "oignons nouveaux":"spring onions","avocat":"avocado","maïs en conserve":"tinned sweetcorn",
 "cœurs d'artichaut":"artichoke hearts","endive":"chicory","chou chinois":"Chinese cabbage",
 "germes de soja":"bean sprouts","kimchi":"kimchi",
-"œufs":"eggs","lait":"milk","crème fraîche":"crème fraîche","crème fraîche épaisse":"thick crème fraîche",
+"œufs":"eggs","blancs d'œufs":"egg whites","lait":"milk","crème fraîche":"crème fraîche","crème fraîche épaisse":"thick crème fraîche",
 "crème liquide entière":"double cream","beurre":"butter","gruyère râpé":"grated gruyère",
 "parmesan râpé":"grated parmesan","mozzarella":"mozzarella","feta":"feta","bûche de chèvre":"goat's cheese log",
 "ricotta":"ricotta","mascarpone":"mascarpone","yaourt nature":"plain yoghurt","fromage blanc":"fromage blanc",
@@ -1820,318 +1327,6 @@ Object.assign(EN, {
 "bouquet":"bunch","bouquets":"bunches","tranche":"slice","tranches":"slices","pincée":"pinch",
 "c.à.s":"tbsp","c.à.c":"tsp"
 });
-
-/* ===== NOMS DE RECETTES EN ANGLAIS ===== */
-Object.assign(EN, {
-"Bœuf bourguignon":"Beef bourguignon","Hachis parmentier":"Beef and potato bake","Quiche lorraine":"Quiche lorraine",
-"Poulet rôti citron-thym":"Lemon and thyme roast chicken","Blanquette de veau express":"Quick creamy beef stew",
-"Gratin de courgettes au chèvre":"Courgette and goat's cheese gratin","Velouté de potimarron":"Red kuri squash soup",
-"Velouté poireaux-pommes de terre":"Leek and potato soup","Soupe à l'oignon gratinée":"French onion soup",
-"Gratin de pâtes au thon":"Tuna pasta bake","Salade de riz, thon et légumes":"Rice, tuna and vegetable salad",
-"Galettes de sarrasin complètes":"Buckwheat galettes with ham and egg","Endives au jambon":"Chicory and ham gratin",
-"Poêlée de gnocchis au pesto":"Pan-fried gnocchi with pesto","Saumon en papillote et riz":"Salmon en papillote with rice",
-"Poulet basquaise":"Basque chicken with peppers","Tartiflette":"Tartiflette","Croque-monsieur au four":"Baked croque-monsieur",
-"Soupe au pistou":"Provençal vegetable soup with pistou","Filet de cabillaud, beurre blanc":"Cod fillet with beurre blanc",
-"Spaghetti alla puttanesca":"Spaghetti alla puttanesca","Risotto aux champignons":"Mushroom risotto",
-"Lasagnes à la bolognaise":"Lasagne bolognese","Pasta e fagioli":"Pasta e fagioli",
-"Aubergines à la parmigiana":"Aubergine parmigiana","Osso-buco de dinde":"Turkey osso buco",
-"Pâtes cacio e pepe":"Cacio e pepe","Minestrone":"Minestrone","Escalope milanaise":"Breaded escalope milanese",
-"Risotto aux tomates et burrata":"Tomato risotto with burrata","Tortilla de pommes de terre":"Spanish potato tortilla",
-"Paella de poulet et chorizo":"Chicken and chorizo paella","Pois chiches aux épinards à l'andalouse":"Andalusian chickpeas and spinach",
-"Gambas à l'ail":"Garlic prawns","Moussaka":"Moussaka","Salade grecque et pain pita":"Greek salad with pitta",
-"Gemista — légumes farcis":"Gemista — stuffed vegetables","Bacalhau à brás":"Bacalhau à brás",
-"Caldo verde":"Caldo verde","Ratatouille et œufs":"Ratatouille with baked eggs",
-"Salade de lentilles, feta et tomates":"Lentil, feta and tomato salad","Taboulé libanais":"Lebanese tabbouleh",
-"Chakchouka":"Shakshuka","Tajine de poulet aux abricots":"Chicken and apricot tagine",
-"Couscous végétarien":"Vegetable couscous","Boulettes d'agneau sauce tomate":"Lamb meatballs in tomato sauce",
-"Houmous, falafels et crudités":"Hummus, falafel and crudités","Mujaddara — lentilles, riz, oignons frits":"Mujaddara — lentils, rice and fried onions",
-"Kefta de bœuf, boulgour et yaourt":"Beef kefta with bulgur and yoghurt","Fatteh d'aubergines":"Aubergine fatteh",
-"Dhal de lentilles corail":"Red lentil dhal","Curry de pois chiches et épinards":"Chickpea and spinach curry",
-"Poulet tikka masala":"Chicken tikka masala","Aloo gobi":"Aloo gobi","Biryani de légumes":"Vegetable biryani",
-"Curry de poisson au coco":"Coconut fish curry","Poulet sauté aux noix de cajou":"Cashew chicken stir-fry",
-"Mapo tofu":"Mapo tofu","Riz cantonais":"Egg fried rice","Bœuf sauté aux oignons":"Beef and onion stir-fry",
-"Soupe de nouilles au porc":"Pork noodle soup","Donburi de poulet teriyaki":"Teriyaki chicken donburi",
-"Soupe miso et légumes":"Miso soup with vegetables","Katsu de porc et chou":"Pork katsu with cabbage",
-"Curry japonais aux légumes":"Japanese vegetable curry","Curry vert de poulet":"Green chicken curry",
-"Pad thaï aux crevettes":"Prawn pad thai","Salade thaï de bœuf":"Thai beef salad","Bo bun au porc":"Pork bo bun",
-"Phở de poulet":"Chicken phở","Bibimbap":"Bibimbap","Porc sauté au kimchi":"Kimchi pork stir-fry",
-"Rougail saucisse":"Réunion sausage rougail","Colombo de poulet":"Chicken colombo","Chili sin carne":"Chilli sin carne",
-"Fajitas de poulet":"Chicken fajitas","Enchiladas aux haricots noirs":"Black bean enchiladas",
-"Feijoada express":"Quick feijoada","Ceviche de cabillaud":"Cod ceviche","Chili con carne":"Chilli con carne",
-"Mac and cheese au four":"Baked mac and cheese","Burger maison et potatoes":"Homemade burger with wedges",
-"Goulash de bœuf":"Beef goulash","Choucroute garnie express":"Quick choucroute garnie",
-"Boulettes suédoises et purée":"Swedish meatballs with mash","Shepherd's pie":"Shepherd's pie","Fish pie":"Fish pie",
-"Mafé de poulet":"Chicken mafé","Yassa de poulet":"Chicken yassa","Poêlée de haricots blancs au chorizo":"White beans with chorizo",
-"Compote pommes-cannelle":"Apple and cinnamon compote","Riz au lait vanillé":"Vanilla rice pudding",
-"Salade de fruits frais":"Fresh fruit salad","Yaourt, miel et noix":"Yoghurt with honey and walnuts",
-"Mousse au chocolat":"Chocolate mousse","Fromage blanc et coulis de fruits rouges":"Fromage blanc with berry coulis",
-"Bananes rôties au miel":"Roast bananas with honey","Semoule au lait":"Semolina pudding","Pommes au four":"Baked apples",
-"Crumble minute aux pommes":"Quick apple crumble","Pain perdu":"French toast","Poires pochées au vin épicé":"Pears poached in spiced wine",
-"Gâteau au yaourt":"Yoghurt cake","Panna cotta au coulis":"Panna cotta with berry coulis","Brownie aux noix":"Walnut brownie",
-"Cookies au chocolat":"Chocolate chip cookies","Madeleines":"Madeleines","Smoothie bowl banane-fruits rouges":"Banana and berry smoothie bowl",
-"Clafoutis aux cerises":"Cherry clafoutis","Mug cake au chocolat":"Chocolate mug cake","Tarte Tatin":"Tarte Tatin",
-"Fondant au chocolat":"Chocolate fondant","Tarte au citron meringuée":"Lemon meringue tart",
-"Cheesecake aux spéculoos":"Speculoos cheesecake","Tiramisu":"Tiramisu","Far breton aux pruneaux":"Far breton",
-"Tarte aux pommes":"Apple tart","Flan pâtissier":"French custard tart","Crumble aux fruits rouges":"Berry crumble",
-"Baklava aux amandes":"Almond baklava","Gâteau basque":"Gâteau basque","Charlotte aux fraises":"Strawberry charlotte",
-"Cannelés bordelais":"Cannelés","Gâteau marbré":"Marble cake"
-});
-
-/* ===== ÉTAPES EN ANGLAIS, par identifiant de recette ===== */
-const EN_ETAPES = {
-m01:["Sear the beef in a casserole and set aside. Brown the lardons and onions.","Dust with flour, stir in the tomato purée.","Return the beef, pour in the wine, add the carrots. Simmer 1 h covered.","Add the mushrooms 15 min before the end. Serve with the tagliatelle."],
-m02:["Boil the potatoes 25 min, mash with milk and butter.","Fry the onion and mince, stir in the tomato purée.","Layer in a dish, top with mash and gruyère.","Bake 20 min at 200 °C."],
-m03:["Line a tin with the pastry and prick the base.","Fry the lardons and scatter over.","Beat eggs, cream, milk and nutmeg. Pour in, top with gruyère.","Bake 35 min at 180 °C."],
-m04:["Cut the vegetables into large chunks and spread in a roasting dish.","Sit the chicken on top with oil, lemon slices, thyme and unpeeled garlic.","Roast 55 min at 200 °C, basting halfway."],
-m05:["Blanch the meat 5 min and drain.","Simmer 1 h with the vegetables and stock.","Make a roux, loosen with the cooking liquid, add the cream.","Bring together with the fried mushrooms. Serve with rice."],
-m06:["Slice the courgettes and fry 12 min with the onion.","Beat the eggs with cream and thyme.","Pour into a dish and dot with goat's cheese.","Bake 30 min at 180 °C."],
-m07:["Cube the unpeeled squash and the potatoes.","Sweat the onion, add the vegetables and cover with stock.","Simmer 25 min, blend with the cream and nutmeg."],
-m08:["Slice the white of the leeks and sweat in butter 10 min.","Add the cubed potatoes and 1.2 l of stock.","Simmer 20 min, blend, stir in the cream."],
-m09:["Slice the onions and caramelise 25 min in butter over low heat.","Dust with flour, deglaze with wine, add 1 l of stock. Simmer 20 min.","Ladle into bowls, top with bread and gruyère, grill 8 min."],
-m10:["Cook the pasta 2 min less than the packet says.","Mix with tuna, tomatoes, cream, fried onion and oregano.","Tip into a dish, cover with gruyère, bake 25 min at 190 °C."],
-m11:["Cook the rice and cool it under cold water.","Hard-boil the eggs 9 min and quarter them.","Toss everything with a mustard dressing. Chill 1 h."],
-m12:["Warm a galette in butter in a frying pan.","Crack an egg in the middle, add ham and cheese.","Fold the edges in, cover 3 min. Repeat."],
-m13:["Braise the chicory 20 min in lemon water, then press dry.","Make a béchamel with a roux, milk and nutmeg.","Roll each chicory in a slice of ham, coat, bake 25 min at 200 °C."],
-m14:["Fry the gnocchi straight from the pack, 8 min over high heat.","Add the halved cherry tomatoes, 3 min.","Off the heat, stir through the pesto. Top with parmesan and toasted pine nuts."],
-m15:["Sit each fillet on baking paper with lemon, dill and a little cream.","Seal the parcels and bake 15 min at 190 °C.","Steam the rice and broccoli 8 min."],
-m16:["Brown the chicken and set aside.","Soften the onions and peppers 15 min.","Add tomatoes, garlic, chilli and the chicken. Simmer 35 min.","Serve with the rice."],
-m17:["Boil the potatoes 20 min and slice them.","Brown lardons and onions, deglaze with white wine.","Layer potatoes and lardons, spoon over cream, cover with cheese.","Bake 25 min at 200 °C."],
-m18:["Make a thick béchamel.","Spread on the bread, fill with ham and cheese.","Coat the top, bake 12 min at 200 °C. Serve with salad."],
-m19:["Dice all the vegetables small.","Simmer 25 min in the stock.","Add the beans and pasta, 10 min more.","Stir in the pistou off the heat."],
-m20:["Steam the potatoes 20 min.","Reduce shallots and white wine almost dry, add the cream.","Whisk in cold butter off the heat.","Pan-fry the cod 8 min and spoon the sauce over."],
-m21:["Melt the garlic and anchovies in oil for 2 min.","Add tomatoes, olives and capers. Simmer 15 min.","Cook the pasta al dente and toss through."],
-m22:["Fry the sliced mushrooms and set aside.","Coat the rice with the shallot, deglaze with white wine.","Add stock a ladle at a time for 18 min.","Off the heat, beat in butter, parmesan and mushrooms."],
-m23:["Make a soffritto, add the mince then the passata. Simmer 45 min.","Make a béchamel.","Layer pasta, ragù and béchamel.","Top with parmesan, bake 35 min at 180 °C."],
-m24:["Make a soffritto of carrot, celery and onion.","Add tomatoes, beans and 700 ml water. Simmer 25 min.","Blend a third of the soup, add the pasta, 10 min."],
-m25:["Roast the aubergine slices 20 min at 200 °C.","Make a tomato sauce with garlic and basil, 20 min.","Layer aubergine, sauce and cheeses.","Bake 30 min at 180 °C."],
-m26:["Flour and brown the meat, set aside.","Sweat the vegetables, deglaze with wine.","Add tomatoes and meat, simmer 1 h.","Finish with lemon zest and parsley. Serve with polenta."],
-m27:["Toast the cracked pepper in a dry pan.","Cook the pasta, keeping a ladle of cooking water.","Emulsify parmesan, pepper and water off the heat."],
-m28:["Dice all the vegetables.","Simmer 25 min in stock with the tomatoes.","Add beans and pasta, 10 min. Parmesan at the table."],
-m29:["Coat the escalopes in flour, egg then breadcrumbs.","Fry 4 min a side.","Serve with tomato pasta and a lemon wedge."],
-m30:["Coat the rice with the shallot.","Add stock a ladle at a time for 18 min.","Fold in the roasted tomatoes, sit the burrata and basil on top."],
-m31:["Confit the thinly sliced potatoes 20 min in oil with the onion.","Beat the eggs, tip in the drained potatoes.","Cook 6 min, flip onto a plate, 4 min more."],
-m32:["Brown chicken and chorizo in a large pan.","Add onion and peppers, 10 min.","Stir in the rice, paprika, saffron and 900 ml stock.","Cook 20 min without stirring, add the peas at the end."],
-m33:["Fry the garlic and a slice of bread, blend to a paste with the spices.","Warm the chickpeas and spinach 10 min.","Thicken with the bread paste, simmer 10 min."],
-m34:["Heat the oil with sliced garlic and chilli.","Add the prawns, 3 min over high heat.","Parsley, and bread for the sauce. Serve with rice."],
-m35:["Roast the aubergines and potatoes 20 min.","Cook the mince with onions, tomatoes and cinnamon, 25 min.","Make a béchamel.","Layer up and bake 35 min at 180 °C."],
-m36:["Cut cucumber, tomatoes and onion into large pieces.","Add the olives and cubed feta.","Olive oil, oregano, pepper. Serve with warm pitta."],
-m37:["Hollow out the tomatoes and peppers, keeping the flesh.","Mix raw rice, onion, herbs and the blended flesh.","Fill three-quarters full, surround with potatoes.","Bake 1 h at 180 °C with a glass of water."],
-m38:["Cut the potatoes into matchsticks and fry until golden.","Fry the onions and flaked fish.","Combine, pour in the beaten eggs and stir off the heat.","Olives and parsley to serve."],
-m39:["Simmer potatoes, onion and garlic in the stock 20 min, then blend.","Shred the cabbage very finely and add for 5 min.","Fry the sliced chorizo and scatter on top."],
-m40:["Cook each vegetable separately for 10 min in oil.","Combine with garlic and herbs, simmer 25 min.","Crack the eggs on top and cover 6 min."],
-m41:["Simmer the lentils 20 min and cool.","Make a mustard dressing.","Toss with tomatoes, shallot and parsley, crumble the feta over."],
-m42:["Soak the bulgur 20 min in cold water.","Chop parsley, mint, tomatoes and onions very finely.","Dress generously with lemon and oil."],
-m43:["Fry the onion and peppers 10 min.","Add tomatoes and spices, reduce 10 min.","Make wells, crack in the eggs, cover 6 min."],
-m44:["Brown the chicken and set aside. Sweat the onions.","Add spices, carrots, chicken and 400 ml stock.","Simmer 40 min, apricots 15 min before the end.","Serve on the couscous with toasted almonds."],
-m45:["Sweat the onions with the spices.","Add the chunky vegetables and tomatoes, cover with water.","Simmer 35 min, add the chickpeas at the end.","Serve on couscous, harissa on the side."],
-m46:["Mix mince, egg, breadcrumbs, one grated onion and cumin. Shape into balls.","Brown them and set aside.","Make a sauce with the other onion and the tomatoes, 15 min.","Return the meatballs, simmer 15 min."],
-m47:["Blend half the chickpeas with tahini, lemon and garlic for the hummus.","Blend the rest with parsley, cumin and flour, shape into balls.","Fry 4 min. Serve with pitta and raw vegetables."],
-m48:["Fry the sliced onions 20 min until deep brown, set aside.","Simmer the lentils 20 min, add rice and spices, 15 min.","Serve buried under the fried onions, with the yoghurt."],
-m49:["Mix mince, grated onion, parsley and cumin. Shape into flat skewers.","Cook 8 min in a very hot pan.","Cook the bulgur. Make a yoghurt, lemon and mint sauce."],
-m50:["Roast the cubed aubergines 30 min at 200 °C.","Toast the torn pitta in the oven.","Mix yoghurt, tahini and garlic.","Layer bread, warm chickpeas, aubergine, sauce and sesame."],
-m51:["Sweat onion, garlic and ginger 5 min.","Add curry powder, rinsed lentils, tomatoes and coconut milk.","Top up with 300 ml water, simmer 20 min.","Stir in the spinach at the end. Serve with rice."],
-m52:["Fry onion and garlic, add the curry paste for 1 min.","Pour in coconut milk, chickpeas and spinach.","Simmer 15 min, finish with lemon. Serve with rice."],
-m53:["Marinate the chicken 20 min in yoghurt and spices.","Sear over high heat and set aside.","Soften onions and ginger, add tomatoes, 20 min.","Return the chicken, add cream, 10 min."],
-m54:["Fry the spices in oil for 1 min.","Add the potatoes and cauliflower florets.","Cover and cook 25 min, stirring. Coriander to serve."],
-m55:["Fry the sliced onions until deep brown and set aside.","Cook the vegetables with yoghurt and spices 15 min.","Cook the rice three-quarters of the way.","Layer rice and vegetables, add saffron, cover and cook 20 min on very low heat."],
-m56:["Fry the onion and spices.","Add tomatoes and coconut milk, reduce 10 min.","Poach the fish 8 min in the sauce. Lime to serve."],
-m57:["Toss the diced chicken in cornflour.","Sear 5 min over high heat and set aside.","Stir-fry pepper and ginger, return the chicken with soy and cashews, 3 min."],
-m58:["Cube the tofu and poach 2 min in salted water.","Fry garlic, ginger and chilli paste.","Add 200 ml water and the tofu, thicken with cornflour, 5 min."],
-m59:["Cook the rice the day before if you can, and chill it well.","Make a thin omelette and cut into strips.","Stir-fry rice, ham and peas over high heat, add the omelette and soy."],
-m60:["Slice the beef thinly, marinate 10 min in soy and cornflour.","Sear 2 min over very high heat and set aside.","Stir-fry the onions 5 min, combine, serve on the noodles."],
-m61:["Poach the pork 25 min in the ginger stock.","Slice it and strain the broth.","Cook noodles and cabbage in it for 5 min. Serve with the pork."],
-m62:["Cook the short-grain rice.","Sear the chicken 6 min a side.","Deglaze with soy, honey and mirin, reduce to a glaze, 3 min.","Slice, serve on the rice with sesame and spring onion."],
-m63:["Heat 800 ml water with the mushrooms, without boiling.","Whisk in the miso off the heat.","Add cubed tofu, nori and cooked noodles."],
-m64:["Flatten the pork and coat in flour, egg and panko.","Fry 4 min a side and drain.","Shred the cabbage very finely. Serve with rice."],
-m65:["Fry the vegetables 10 min.","Cover with stock and simmer 25 min.","Make a curry roux, stir in and thicken 10 min."],
-m66:["Heat the curry paste in a little coconut milk.","Add the chicken, 5 min.","Pour in the rest of the coconut milk and the vegetables, simmer 15 min.","Fish sauce and basil to serve."],
-m67:["Soak the noodles 10 min in warm water.","Fry the prawns, push aside, scramble the eggs.","Add noodles, fish sauce, sugar and lime, 3 min.","Bean sprouts and crushed peanuts on top."],
-m68:["Sear the beef 2 min a side, rest, then slice thinly.","Mix fish sauce, lime and chilli.","Toss with the raw vegetables and herbs."],
-m69:["Marinate the sliced pork in fish sauce and sugar, 15 min.","Cook the noodles and cool them.","Sear the pork 6 min over high heat.","Build: noodles, raw vegetables, pork, nuoc cham, peanuts."],
-m70:["Char the onion and ginger in a dry pan for 5 min.","Poach the chicken 45 min with the spices in 1.5 l water.","Strain and season with fish sauce.","Serve noodles, shredded chicken, herbs and sprouts."],
-m71:["Cook the rice.","Cook carrots, spinach and mushrooms separately, dressing each with sesame.","Arrange in sections on the rice, fried egg in the middle, gochujang on the side."],
-m72:["Sear the sliced pork 6 min.","Add onion and kimchi, 5 min over high heat.","Season with gochujang and sesame oil. Serve on rice."],
-m73:["Blanch the sausages 10 min, slice and brown them.","Add onions, ginger and turmeric, 5 min.","Pour in the tomatoes, thyme and chilli. Simmer 30 min."],
-m74:["Marinate the chicken in lime, garlic and curry powder for 20 min.","Brown it, add onions and vegetables.","Cover with water and simmer 35 min."],
-m75:["Fry onions, peppers and garlic 8 min.","Add the spices for 1 min.","Pour in tomatoes, beans and sweetcorn, simmer 25 min. Serve on rice."],
-m76:["Slice chicken and vegetables, season with the spices.","Sear everything 10 min over high heat.","Warm the tortillas, serve with cream and lime."],
-m77:["Roughly mash the beans with the fried onion and spices.","Fill and roll the tortillas.","Coat with passata, cover with cheese, 25 min at 190 °C."],
-m78:["Brown the pork and sausages.","Add onions, garlic and bay.","Pour in the beans with their liquid and 300 ml water, simmer 40 min.","Serve with rice and orange wedges."],
-m79:["Dice the fish and cover with lime juice for 15 min.","Add sliced onion, chilli and coriander.","Serve with sliced cooked sweet potato and sweetcorn."],
-m80:["Sear the mince and set aside.","Soften onions and pepper, add the spices.","Combine with tomatoes and beans, simmer 35 min.","Stir in the chocolate at the end."],
-m81:["Cook the pasta 2 min less than the packet says.","Make a béchamel and melt the cheddar into it.","Combine, tip into a dish, breadcrumbs on top.","Bake 20 min at 200 °C."],
-m82:["Cut the potatoes into wedges, toss with paprika and oil, 30 min at 200 °C.","Shape two patties, sear 3 min a side, cheese on top.","Toast the bread and build the burger."],
-m83:["Soften the onions 15 min, stir in the paprika off the heat.","Add the meat, tomatoes and water to cover.","Simmer 1 h 15, add potatoes and peppers 30 min before the end.","Cream to serve."],
-m84:["Rinse the sauerkraut and sweat with the onion.","Add the beer, bay and pork belly, 40 min.","Add sausages and potatoes 20 min before the end."],
-m85:["Blend the meats with onion, breadcrumbs and egg, shape into balls.","Brown them and set aside.","Roux, cream and stock for the sauce, return the meatballs 15 min.","Serve with mash and a spoon of jam."],
-m86:["Boil the potatoes and mash with butter and milk.","Fry mince, onions and carrots with tomato purée, 25 min.","Add the peas, top with mash, bake 25 min at 200 °C."],
-m87:["Poach the fish 6 min in the milk, reserve both.","Make a béchamel with that milk, add dill and peas.","Flake the fish in, top with mash and cheese.","Bake 25 min at 190 °C."],
-m88:["Brown the chicken and set aside.","Soften the onions, add tomatoes and loosened peanut butter.","Return the chicken and vegetables, simmer 40 min."],
-m89:["Marinate chicken and sliced onions in lemon and mustard, 30 min at least.","Brown the chicken and set aside.","Stew the onions 20 min, return the chicken, 20 min."],
-m90:["Brown the sliced chorizo and keep the fat.","Fry onion and garlic in it.","Add the drained beans and paprika, 10 min. Parsley to finish."],
-d01:["Peel and chop the apples.","Cook 20 min covered with 50 ml water, the sugar and cinnamon.","Crush with a fork, add lemon. Keeps 5 days chilled."],
-d02:["Blanch the rice 2 min in boiling water and drain.","Cook 30 min in the vanilla milk over very low heat, stirring.","Stir in the sugar at the end."],
-d03:["Cut all the fruit into even dice.","Dress with lime juice and honey.","Shredded mint, chill 30 min."],
-d04:["Spoon the yoghurt into bowls.","Crush the walnuts and toast 2 min in a dry pan.","Honey and walnuts on top."],
-d05:["Melt the chocolate over a bain-marie, stir in the yolks.","Whisk the whites to firm peaks with the sugar.","Fold in gently in three goes. Chill 4 h."],
-d06:["Blend the raspberries with the sugar and a squeeze of lemon.","Sieve if you like.","Spoon over the fromage blanc to serve."],
-d07:["Split the bananas lengthways.","Dot with butter, drizzle with honey, rum and lime.","Bake 15 min at 200 °C."],
-d08:["Bring the sweetened milk to a simmer.","Rain in the semolina, cook 8 min stirring.","Add the raisins, pour into ramekins and let set."],
-d09:["Core the apples without piercing the base.","Fill with butter, brown sugar, cinnamon and raisins.","Bake 30 min at 180 °C."],
-d10:["Dice the apples into a dish.","Rub flour, butter, sugar and oats to crumbs.","Cover and bake 25 min at 190 °C."],
-d11:["Beat the eggs, milk and sugars.","Soak the slices 1 min each side.","Fry in butter 3 min a side."],
-d12:["Peel the pears, keeping the stalks.","Poach 25 min in the spiced sweetened wine with orange zest.","Reduce the syrup by half and pour over. Better the next day."],
-d13:["Mix the yoghurt, sugar and eggs.","Add flour, baking powder, oil and lemon zest.","Bake 30 min at 180 °C."],
-d14:["Heat cream, sugar and vanilla without boiling.","Stir in the softened gelatine, pour into glasses.","Chill 4 h. Raspberry coulis to serve."],
-d15:["Melt the chocolate and butter.","Add sugar, eggs, then flour and chopped walnuts.","Bake 22 min at 180 °C — the middle should stay soft."],
-d16:["Cream the butter and sugar, add the egg.","Fold in flour, baking powder and chopped chocolate.","Roll into balls, bake 11 min at 180 °C."],
-d17:["Beat eggs and sugar, add flour, baking powder and zest.","Stir in the melted butter, rest 30 min chilled.","Bake 9 min at 200 °C for the classic hump."],
-d18:["Blend bananas, raspberries and yoghurt to a thick purée.","Pour into bowls.","Oats, honey and a few whole berries on top."],
-d19:["Butter a dish and spread the cherries in it.","Beat eggs, sugar, flour then milk.","Pour over and bake 35 min at 180 °C."],
-d20:["Mix everything straight in a mug.","Microwave 90 seconds on full power.","Let it settle 1 min before eating."],
-d21:["Make a dry caramel and whisk in the butter.","Pack the apple quarters on top, cook 20 min over low heat.","Cover with pastry, tucking the edges in, 30 min at 190 °C.","Turn out while still warm."],
-d22:["Melt the chocolate and butter over a bain-marie.","Whisk eggs and sugar pale, combine, fold in the flour.","Bake 22 min at 180 °C. Better the next day, well chilled."],
-d23:["Blind bake the pastry case 20 min.","Cook lemon juice, yolks, sugar and cornflour until thick, then beat in the butter.","Fill, whisk the whites into meringue with the remaining sugar.","Pipe on and colour 8 min at 200 °C."],
-d24:["Blend the biscuits with melted butter and press into a tin.","Beat the cheeses, sugar, eggs and zest.","Bake 50 min at 150 °C, cool in the oven.","Chill overnight before serving."],
-d25:["Whisk yolks and sugar pale, fold in the mascarpone.","Fold in the whisked whites.","Dip the sponge fingers briefly in strong coffee, layer up.","Chill 6 h, cocoa at the last minute."],
-d26:["Whisk flour, eggs and sugar, loosen with the milk a little at a time.","Add the rum and rest 30 min.","Spread the fruit in a buttered dish and pour the batter over.","Bake 45 min at 190 °C."],
-d27:["Roll out the pastry and scatter ground almonds over the base.","Arrange the apple slices in a rosette.","Sugar, cinnamon and dots of butter.","Bake 45 min at 180 °C."],
-d28:["Heat the vanilla milk.","Whisk eggs, sugar and cornflour, pour on the hot milk, thicken on the heat.","Pour onto the pastry base, bake 40 min at 180 °C.","Cool completely before slicing."],
-d29:["Spread the berries and diced apple in a dish.","Rub flour, butter, sugar and almonds to crumbs.","Cover generously, bake 40 min at 180 °C."],
-d30:["Alternate buttered filo sheets with layers of sweetened nuts.","Score into diamonds before baking.","Bake 45 min at 170 °C.","Pour over the warm honey and lemon syrup, leave overnight to soak."],
-d31:["Make a sweet shortcrust, rest 30 min chilled.","Make a rum pastry cream and cool it.","Line, fill, cover with a second disc, glaze.","Bake 45 min at 180 °C."],
-d32:["Line a mould with sponge fingers soaked in strawberry syrup.","Blend half the strawberries, add the melted gelatine.","Fold in the whipped cream, alternate with sliced strawberries.","Chill at least 6 h."],
-d33:["Make a smooth batter, like pancake batter, rest 24 h chilled if you can.","Fill the moulds three-quarters full.","Bake 15 min at 230 °C then 45 min at 180 °C."],
-d34:["Make a pound cake batter and split it in two.","Add cocoa and milk to one half.","Spoon alternately into a loaf tin, swirl with a knife.","Bake 45 min at 170 °C."]
-};
-
-/* ===== MATÉRIEL PAR RECETTE — dérivé des étapes ===== */
-const MATERIEL = {
-m01:["planche","poele","cocotte"],
-m02:["planche","four","platGratin","poele","casserole","presseP"],
-m03:["four","mouleTarte","poele","fouet"],
-m04:["planche","four","platGratin"],
-m05:["planche","poele","casserole","passoire"],
-m06:["planche","four","platGratin","poele","fouet"],
-m07:["planche","casserole","mixeur"],
-m08:["planche","casserole","mixeur"],
-m09:["planche","four","platGratin","cocotte","ramequins"],
-m10:["planche","four","platGratin","casserole","saladier"],
-m11:["planche","casserole","passoire","saladier"],
-m12:["poele","fouet"],
-m13:["planche","four","platGratin","cocotte"],
-m14:["poele","casserole","saladier"],
-m15:["planche","four","platGratin","vapeur","papierCuisson"],
-m16:["planche","poele","cocotte"],
-m17:["planche","four","platGratin","poele","casserole"],
-m18:["planche","four","platGratin"],
-m19:["planche","casserole"],
-m20:["planche","poele","casserole","vapeur"],
-m21:["poele","cocotte","saladier"],
-m22:["planche","poele","casserole"],
-m23:["planche","four","platGratin","cocotte"],
-m24:["planche","cocotte","mixeur"],
-m25:["planche","four","platGratin"],
-m26:["planche","poele","cocotte","rape"],
-m27:["poele","casserole"],
-m28:["planche","casserole"],
-m29:["planche","poele"],
-m30:["planche","casserole"],
-m31:["planche","poele","fouet","passoire"],
-m32:["planche","poele","casserole"],
-m33:["cocotte","mixeur","friteuse"],
-m34:["planche","poele"],
-m35:["planche","four","platGratin"],
-m36:["planche","casserole"],
-m37:["planche","four","platGratin","saladier"],
-m38:["planche","poele","friteuse"],
-m39:["planche","poele","casserole","mixeur"],
-m40:["planche","cocotte"],
-m41:["planche","casserole","passoire","saladier"],
-m42:["planche","casserole"],
-m43:["planche","poele"],
-m44:["planche","poele","cocotte"],
-m45:["planche","cocotte"],
-m46:["planche","poele","cocotte","saladier","rape"],
-m47:["planche","mixeur","friteuse"],
-m48:["planche","casserole","friteuse"],
-m49:["planche","poele","saladier","rape"],
-m50:["planche","four","saladier","casserole"],
-m51:["planche","cocotte"],
-m52:["planche","poele","cocotte"],
-m53:["planche","poele"],
-m54:["planche","poele"],
-m55:["planche","casserole","friteuse"],
-m56:["planche","poele","casserole"],
-m57:["planche","poele"],
-m58:["planche","poele","casserole"],
-m59:["planche","casserole","wok"],
-m60:["planche","wok"],
-m61:["planche","casserole"],
-m62:["planche","poele","casserole"],
-m63:["planche","casserole"],
-m64:["planche","friteuse","passoire"],
-m65:["planche","poele","casserole"],
-m66:["planche","cocotte"],
-m67:["planche","poele","casserole"],
-m68:["planche","poele","saladier"],
-m69:["planche","poele","passoire"],
-m70:["planche","casserole"],
-m71:["planche","casserole"],
-m72:["planche","poele"],
-m73:["planche","poele","cocotte"],
-m74:["planche","poele","cocotte"],
-m75:["planche","poele","cocotte"],
-m76:["planche","poele"],
-m77:["planche","four","presseP","casserole"],
-m78:["planche","poele","cocotte"],
-m79:["planche","casserole"],
-m80:["planche","poele","cocotte"],
-m81:["four","platGratin","casserole","saladier"],
-m82:["planche","four","poele"],
-m83:["planche","poele","cocotte"],
-m84:["planche","passoire","casserole"],
-m85:["planche","poele","casserole","mixeur","presseP"],
-m86:["planche","four","platGratin","poele","casserole","presseP"],
-m87:["four","platGratin","casserole","presseP"],
-m88:["planche","poele","cocotte"],
-m89:["planche","poele"],
-m90:["planche","poele","passoire"],
-d01:["planche","presseP","casserole"],
-d02:["casserole","passoire"],
-d03:["planche","casserole"],
-d04:["ramequins"],
-d05:["batteur","bainMarie","casserole"],
-d06:["planche","mixeur"],
-d07:["planche","four","casserole"],
-d08:["ramequins","casserole"],
-d09:["planche","four","casserole"],
-d10:["planche","four","mouleGateau"],
-d11:["poele","fouet"],
-d12:["planche","casserole","rape"],
-d13:["planche","four","mouleGateau","saladier","rape"],
-d14:["ramequins","casserole"],
-d15:["four","mouleGateau"],
-d16:["four","mouleGateau"],
-d17:["planche","four","mouleGateau","fouet","rape"],
-d18:["planche","mixeur"],
-d19:["four","mouleGateau","fouet"],
-d20:["ramequins","saladier","microOndes"],
-d21:["planche","four","mouleTarte","poele"],
-d22:["four","mouleGateau","casserole","bainMarie"],
-d23:["planche","four","mouleTarte","poele","casserole","batteur"],
-d24:["planche","four","mixeur","fouet","rape","casserole"],
-d25:["casserole","batteur"],
-d26:["four","mouleGateau","fouet","saladier"],
-d27:["planche","four","mouleTarte"],
-d28:["planche","four","mouleTarte","casserole"],
-d29:["planche","four","mouleGateau"],
-d30:["planche","four","casserole"],
-d31:["four","mouleGateau","poele","rouleau"],
-d32:["planche","casserole","mixeur","batteur","mouleCharlotte"],
-d33:["four","poele","saladier","mouleCanneles"],
-d34:["four","mouleCake","rouleau"]
-};
 
 /* ==================================================================
    ILLUSTRATIONS
@@ -2248,138 +1443,6 @@ function iconePlat(r) {
   return ICONE_BASE[r.base] || "platPoele";
 }
 
-/* ===== ORIGINE DES PLATS ===== */
-const ORIGINES = {
-m01:{fr:"Bourgogne. Un plat de paysan : des morceaux de bœuf trop durs pour être grillés, attendris des heures durant dans le vin de la région. Escoffier l'a codifié au début du XXe siècle.",en:"Burgundy. A peasant dish: cuts of beef too tough to grill, tenderised for hours in the local wine. Escoffier codified it in the early twentieth century."},
-m02:{fr:"Doit son nom à Antoine Parmentier, pharmacien militaire qui passa les années 1780 à convaincre les Français que la pomme de terre n'était pas réservée aux cochons.",en:"Named after Antoine Parmentier, an army pharmacist who spent the 1780s persuading the French that potatoes weren't just pig food."},
-m03:{fr:"Lorraine. Le mot vient du germanique « Kuchen », gâteau. La recette d'origine ne contenait que des œufs, de la crème et du lard : le fromage est un ajout tardif.",en:"Lorraine. The word comes from the Germanic Kuchen, cake. The original held only eggs, cream and bacon; the cheese is a later addition."},
-m04:{fr:"Le rituel du dimanche français. Le poulet rôti était longtemps un luxe hebdomadaire, d'où l'expression prêtée à Henri IV sur la poule au pot.",en:"The French Sunday ritual. Roast chicken was long a weekly luxury, hence the line attributed to Henri IV about a chicken in every pot."},
-m05:{fr:"Une blanquette est un ragoût « blanc » : on ne colore jamais la viande. Traditionnellement au veau, elle se décline ici au bœuf.",en:"A blanquette is a white stew: the meat is never browned. Traditionally veal, made here with beef."},
-m06:{fr:"Provence, plein été. Le gratin de courgettes est né d'un problème de jardinier : que faire quand le potager en produit plus qu'on ne peut en manger.",en:"Provence, high summer. The courgette gratin was born of a gardener's problem: what to do when the vegetable patch produces more than you can eat."},
-m07:{fr:"Le potimarron est japonais : la courge Hokkaido, arrivée en France au XXe siècle. Son nom mêle potiron et marron, pour son goût de châtaigne.",en:"Red kuri squash is Japanese, a Hokkaido variety that reached France in the twentieth century. Its French name blends pumpkin and chestnut, for its taste."},
-m08:{fr:"L'ancêtre de la vichyssoise, laquelle ne vient pas de Vichy mais de New York : un chef français l'y servit froide dans les années 1910.",en:"The ancestor of vichyssoise, which comes not from Vichy but from New York, where a French chef served it chilled in the 1910s."},
-m09:{fr:"La soupe des Halles de Paris, avalée à l'aube par les forts des marchés et, dit-on, par les noctambules en fin de soirée.",en:"The soup of the Paris markets, eaten at dawn by the porters of Les Halles and, so the story goes, by revellers on the way home."},
-m10:{fr:"Cuisine familiale française d'après-guerre, bâtie autour de la boîte de thon, qui rendit le poisson bon marché et disponible partout.",en:"Postwar French home cooking, built around the tin of tuna that made fish cheap and available everywhere."},
-m11:{fr:"Le plat de pique-nique par excellence : il se prépare la veille, voyage sans dommage et se mange froid.",en:"The picnic dish par excellence: made the day before, it travels without damage and is eaten cold."},
-m12:{fr:"Bretagne. Le sarrasin poussait sur les sols pauvres où le froment échouait. « Complète » veut dire jambon, œuf et fromage.",en:"Brittany. Buckwheat grew on poor soil where wheat failed. Complète means ham, egg and cheese."},
-m13:{fr:"L'endive fut obtenue par hasard en Belgique au XIXe siècle, en forçant des racines de chicorée à l'obscurité dans une cave.",en:"Chicory was obtained by accident in nineteenth-century Belgium, by forcing roots to sprout in the dark of a cellar."},
-m14:{fr:"Le pesto vient de Gênes, où le basilic se pilait au mortier avec de l'huile de Ligurie. « Pesto » et « pilon » partagent la même racine.",en:"Pesto comes from Genoa, where basil was pounded in a mortar with Ligurian oil. Pesto and pestle share a root."},
-m15:{fr:"La papillote enferme les arômes plutôt que de les laisser s'échapper : une cuisson à la vapeur de son propre jus.",en:"The papillote traps the aromas rather than letting them escape: the fish steams in its own juices."},
-m16:{fr:"Pays basque. Le piment d'Espelette y remplaça le poivre, trop coûteux, après son arrivée d'Amérique au XVIe siècle.",en:"Basque country. Espelette pepper replaced costly black pepper there after arriving from the Americas in the sixteenth century."},
-m17:{fr:"Savoie, mais récente : la tartiflette fut lancée dans les années 1980 par l'interprofession du reblochon pour écouler du fromage.",en:"Savoie, but recent: tartiflette was launched in the 1980s by the Reblochon producers' association to shift cheese."},
-m18:{fr:"Apparu dans les cafés parisiens vers 1910. Le nom serait une plaisanterie de comptoir sur la viande « croquée » par le monsieur.",en:"Appeared in Paris cafés around 1910. The name is said to be a counter joke about the gentleman crunching into his meat."},
-m19:{fr:"Provence. Le pistou est le cousin du pesto ligure, mais sans pignons : seulement basilic, ail et huile d'olive.",en:"Provence. Pistou is the cousin of Ligurian pesto but without pine nuts: just basil, garlic and olive oil."},
-m20:{fr:"Pays nantais. La légende veut qu'une cuisinière ait oublié les jaunes d'œufs d'une béarnaise et obtenu, par accident, cette émulsion au beurre.",en:"The Nantes region. Legend has it a cook forgot the egg yolks in a béarnaise and accidentally produced this butter emulsion."},
-m21:{fr:"Naples ou Ischia, milieu du XXe siècle. L'origine du nom est disputée et probablement moins sulfureuse qu'on ne le raconte.",en:"Naples or Ischia, mid twentieth century. The origin of the name is disputed and probably less scandalous than the stories suggest."},
-m22:{fr:"Plaine du Pô, où l'on cultive le riz depuis le XVe siècle. Le grain rond libère son amidon et fait la crème, sans crème.",en:"The Po valley, where rice has been grown since the fifteenth century. The round grain releases its starch and makes the cream, without cream."},
-m23:{fr:"Émilie-Romagne. Le ragù bolognese authentique contient très peu de tomate : c'est un ragoût de viande, pas une sauce tomate.",en:"Emilia-Romagna. Authentic ragù bolognese contains very little tomato: it is a meat stew, not a tomato sauce."},
-m24:{fr:"Cucina povera : des haricots pour les protéines, des pâtes pour l'énergie, et rien de gaspillé. On y jetait les bouts de pâtes dépareillés.",en:"Cucina povera: beans for protein, pasta for energy, nothing wasted. Odd ends of pasta went in together."},
-m25:{fr:"Italie du Sud. La Campanie et la Sicile se disputent la paternité, et le nom ne vient peut-être pas de Parme mais du sicilien « parmiciana », volet.",en:"Southern Italy. Campania and Sicily both claim it, and the name may come not from Parma but from the Sicilian parmiciana, a shutter slat."},
-m26:{fr:"Milan. « Osso buco » signifie os troué : la moelle du jarret est la meilleure part. Traditionnellement au veau.",en:"Milan. Osso buco means hollow bone: the marrow in the shin is the best part. Traditionally veal."},
-m27:{fr:"Rome. Le plat des bergers : du fromage de brebis et du poivre se transportaient sans se gâter dans la montagne.",en:"Rome. A shepherd's dish: sheep's cheese and pepper travelled into the hills without spoiling."},
-m28:{fr:"Il n'existe pas de recette de minestrone. C'est une méthode : tout ce que donne le jardin, coupé petit et mijoté.",en:"There is no recipe for minestrone. It is a method: whatever the garden gives, chopped small and simmered."},
-m29:{fr:"Milan. La cotoletta alla milanese et le Wiener Schnitzel se disputent l'antériorité depuis le XIXe siècle, sans vainqueur clair.",en:"Milan. The cotoletta alla milanese and the Wiener Schnitzel have disputed seniority since the nineteenth century, with no clear winner."},
-m30:{fr:"La burrata est née dans les Pouilles au XXe siècle, pour ne pas perdre les chutes de mozzarella : on les enferme dans une poche de pâte avec de la crème.",en:"Burrata was created in Puglia in the twentieth century to save mozzarella offcuts, wrapped with cream inside a pouch of curd."},
-m31:{fr:"Espagne, autour de 1800. Une tortilla nourrit beaucoup de monde avec peu : des œufs, des pommes de terre, de l'huile.",en:"Spain, around 1800. A tortilla feeds many people on little: eggs, potatoes, oil."},
-m32:{fr:"Valence. La paella d'origine se faisait au feu de bois d'oranger, avec du lapin et des escargots. Les fruits de mer sont une version côtière.",en:"Valencia. The original paella was cooked over orange wood with rabbit and snails. Seafood is a coastal variant."},
-m33:{fr:"Tapa de Séville, héritée d'al-Andalus : les épinards et les pois chiches y arrivèrent avec la cuisine arabe.",en:"A Seville tapa inherited from al-Andalus: spinach and chickpeas both arrived with Arab cooking."},
-m34:{fr:"Andalousie. Servi encore grésillant dans sa cazuela de terre cuite, avec du pain pour l'huile à l'ail.",en:"Andalusia. Served still sizzling in its earthenware cazuela, with bread for the garlic oil."},
-m35:{fr:"Grèce. La couche de béchamel n'est pas ancienne : elle fut ajoutée dans les années 1920 par Nikolaos Tselementes, qui voulait franciser la cuisine grecque.",en:"Greece. The béchamel layer is not ancient: it was added in the 1920s by Nikolaos Tselementes, who wanted to Frenchify Greek cooking."},
-m36:{fr:"« Horiatiki » veut dire salade du village. La vraie ne contient pas de salade verte, et la feta arrive en un seul bloc posé dessus.",en:"Horiatiki means village salad. The real thing contains no lettuce, and the feta arrives as a single slab laid on top."},
-m37:{fr:"Grèce. Les gemista appartiennent aux « ladera », ces plats à l'huile d'olive que l'on mange tièdes et qui se passent de viande les jours de jeûne.",en:"Greece. Gemista belong to the ladera, olive-oil dishes eaten warm that do without meat on fasting days."},
-m38:{fr:"Lisbonne. La morue séchée nourrit le Portugal depuis que ses marins pêchaient à Terre-Neuve. On dit qu'il existe une recette par jour de l'année.",en:"Lisbon. Salt cod has fed Portugal since its sailors fished off Newfoundland. They say there is a recipe for every day of the year."},
-m39:{fr:"Minho, au nord du Portugal. Le chou y est coupé en filaments si fins que la coupe est devenue une spécialité en soi.",en:"Minho, in northern Portugal. The cabbage is shredded so finely that the cutting became a speciality in itself."},
-m40:{fr:"Nice. Le nom vient de « touiller », remuer. Les puristes cuisent chaque légume séparément pour qu'aucun ne se délite.",en:"Nice. The name comes from touiller, to stir. Purists cook each vegetable separately so none collapses."},
-m41:{fr:"La lentille verte du Puy pousse sur les sols volcaniques du Velay et fut le premier légume sec à obtenir une AOC.",en:"Green Puy lentils grow on the volcanic soils of the Velay and were the first pulse to receive a French protected origin label."},
-m42:{fr:"Levant. Le vrai taboulé est une salade de persil avec un peu de boulgour ; la version française a inversé les proportions.",en:"The Levant. Real tabbouleh is a parsley salad with a little bulgur; the French version reversed the proportions."},
-m43:{fr:"Maghreb, sans doute tunisienne. Elle a essaimé dans toute la Méditerranée et jusqu'en Israël, où elle est devenue un plat du petit-déjeuner.",en:"The Maghreb, probably Tunisia. It spread across the Mediterranean and into Israel, where it became a breakfast dish."},
-m44:{fr:"Le tajine désigne d'abord le plat en terre à couvercle conique, qui fait retomber la vapeur sur les aliments. Le sucré-salé est une signature marocaine.",en:"Tagine first means the conical earthenware pot, which returns the steam to the food. The sweet-savoury pairing is a Moroccan signature."},
-m45:{fr:"Berbère d'origine. La semoule cuit à la vapeur du bouillon, jamais dedans. Le couscous figure régulièrement parmi les plats préférés des Français.",en:"Berber in origin. The semolina steams over the broth, never in it. Couscous regularly ranks among France's favourite dishes."},
-m46:{fr:"Maghreb. La kefta désigne la viande hachée aux épices ; on la façonne en boulettes ou autour d'une brochette plate.",en:"The Maghreb. Kefta means spiced minced meat, shaped into balls or moulded around a flat skewer."},
-m47:{fr:"Levant. Le falafel serait né chez les Coptes d'Égypte, aux fèves, avant de passer aux pois chiches en remontant vers le nord.",en:"The Levant. Falafel is thought to have begun among Egypt's Copts, made with broad beans, before switching to chickpeas further north."},
-m48:{fr:"Le mujaddara figure déjà dans un livre de cuisine bagdadien du XIIIe siècle. Les oignons frits noirs en sont la signature.",en:"Mujaddara already appears in a thirteenth-century Baghdad cookbook. The darkly fried onions are its signature."},
-m49:{fr:"Moyen-Orient. La viande hachée moulée sur la brochette cuit plus vite et plus régulièrement qu'un morceau entier.",en:"The Middle East. Minced meat moulded onto the skewer cooks faster and more evenly than a whole piece."},
-m50:{fr:"« Fatteh » vient de l'arabe « fatta », briser. C'est une famille de plats bâtis sur du pain rassis que l'on casse au fond du plat.",en:"Fatteh comes from the Arabic fatta, to break. It is a family of dishes built on stale bread broken into the bottom of the dish."},
-m51:{fr:"Sous-continent indien. Le dhal est le plat quotidien par excellence : des légumineuses, des épices, et de quoi tenir la journée.",en:"The Indian subcontinent. Dhal is the everyday dish par excellence: pulses, spices, and enough to see out the day."},
-m52:{fr:"Inde du Nord. Le chana palak associe deux ingrédients bon marché en un plat complet, largement végétarien par tradition.",en:"North India. Chana palak pairs two cheap ingredients into a complete dish, largely vegetarian by tradition."},
-m53:{fr:"Probablement britannique. Un restaurateur de Glasgow revendique l'avoir inventé dans les années 1970 en allongeant un poulet tikka jugé trop sec.",en:"Probably British. A Glasgow restaurateur claims to have invented it in the 1970s by loosening a chicken tikka judged too dry."},
-m54:{fr:"Pendjab. Aloo pour la pomme de terre, gobi pour le chou-fleur : le nom est la liste des courses.",en:"Punjab. Aloo for potato, gobi for cauliflower: the name is the shopping list."},
-m55:{fr:"Cuisine des cours moghole, d'inspiration persane. Le riz et la garniture cuisent séparément avant d'être scellés ensemble à feu très doux.",en:"The cooking of the Mughal courts, Persian in inspiration. Rice and filling cook separately before being sealed together over very low heat."},
-m56:{fr:"Côte de Malabar. Le lait de coco y remplace le yaourt du Nord comme milieu de cuisson des currys.",en:"The Malabar coast. Coconut milk replaces the yoghurt of the north as the cooking medium for curries."},
-m57:{fr:"Sauté cantonais popularisé par les restaurants chinois d'Occident. La maïzena sur la viande, dite « velouting », la garde tendre à feu vif.",en:"A Cantonese stir-fry popularised by Chinese restaurants in the West. The cornflour coating, known as velveting, keeps the meat tender over high heat."},
-m58:{fr:"Chengdu, Sichuan, XIXe siècle. « Mapo » signifie la vieille femme grêlée : la tenancière de l'échoppe où le plat fut servi.",en:"Chengdu, Sichuan, nineteenth century. Mapo means the pockmarked old woman, the keeper of the stall where the dish was served."},
-m59:{fr:"En Chine on l'appelle riz de Yangzhou. Le nom français dit « cantonais », par raccourci hérité des premiers restaurants chinois de Paris.",en:"In China it is called Yangzhou rice. The French name says Cantonese, a shorthand inherited from the first Chinese restaurants in Paris."},
-m60:{fr:"Un classique du répertoire des restaurants chinois en France, où il figure sur presque toutes les cartes depuis les années 1970.",en:"A staple of the Chinese restaurant repertoire in France, on almost every menu since the 1970s."},
-m61:{fr:"Les soupes de nouilles traversent toute la Chine. Le bouillon est la vraie recette : les nouilles n'en sont que le support.",en:"Noodle soups run right across China. The broth is the real recipe; the noodles are only the vehicle."},
-m62:{fr:"« Donburi » désigne le bol de riz garni. « Teriyaki » vient de « teri », le brillant, et « yaki », le grillé : c'est la laque, pas la sauce.",en:"Donburi means the topped rice bowl. Teriyaki comes from teri, shine, and yaki, grilled: it describes the glaze, not a sauce."},
-m63:{fr:"Japon. Le miso est une pâte de soja fermentée. On ne la fait jamais bouillir, sous peine de tuer les ferments et l'arôme.",en:"Japan. Miso is fermented soybean paste. It is never boiled, or the ferments and the aroma are lost."},
-m64:{fr:"Cuisine « yōshoku » : le Japon de l'ère Meiji adaptant les plats occidentaux. La côtelette panée y est devenue une institution.",en:"Yōshoku cooking: Meiji-era Japan adapting Western dishes. The breaded cutlet became an institution there."},
-m65:{fr:"Le curry arriva au Japon par la marine britannique, pas par l'Inde. D'où sa texture épaisse, liée au roux, très éloignée d'un curry indien.",en:"Curry reached Japan through the British navy, not through India. Hence its thick roux-bound texture, far removed from an Indian curry."},
-m66:{fr:"Thaïlande. « Kaeng khiao wan » signifie curry vert doux : la couleur vient des piments frais, pas de l'absence de force.",en:"Thailand. Kaeng khiao wan means sweet green curry: the colour comes from fresh chillies, not from any lack of heat."},
-m67:{fr:"Promu comme plat national par le gouvernement thaïlandais dans les années 1930-40, dans une campagne visant à forger une identité culinaire moderne.",en:"Promoted as a national dish by the Thai government in the 1930s and 1940s, in a campaign to forge a modern culinary identity."},
-m68:{fr:"Isan, nord-est de la Thaïlande. L'équilibre acide, salé, sucré, piquant s'y règle à chaque assiette, jamais une fois pour toutes.",en:"Isan, north-eastern Thailand. The balance of sour, salty, sweet and hot is tuned plate by plate, never once and for all."},
-m69:{fr:"Sud du Viêt Nam. Le bún thịt nướng réunit dans un seul bol du chaud, du froid, du croquant et des herbes crues.",en:"Southern Vietnam. Bún thịt nướng brings hot, cold, crunchy and raw herbs together in a single bowl."},
-m70:{fr:"Hanoï, début du XXe siècle. L'influence du pot-au-feu français sur sa naissance est débattue depuis longtemps, sans preuve décisive.",en:"Hanoi, early twentieth century. The influence of the French pot-au-feu on its birth has long been debated, with no decisive evidence."},
-m71:{fr:"Corée. « Bibim » veut dire mélanger, « bap » le riz : le plat n'existe qu'une fois tout écrasé ensemble à la cuillère.",en:"Korea. Bibim means to mix, bap means rice: the dish only exists once everything is mashed together with a spoon."},
-m72:{fr:"Le kimchi vieilli, trop acide pour être mangé cru, trouve sa seconde vie à la poêle. Le « kimjang », sa préparation collective, est classé par l'UNESCO.",en:"Aged kimchi, too sour to eat raw, finds a second life in the pan. Kimjang, the communal making of it, is listed by UNESCO."},
-m73:{fr:"La Réunion. Le rougail désigne à l'origine un condiment pilé ; le rougail saucisse en est la version en plat, devenue emblème de l'île.",en:"Réunion. Rougail originally meant a pounded condiment; rougail saucisse is the main-course version, now an emblem of the island."},
-m74:{fr:"Antilles. Le colombo fut apporté au XIXe siècle par les travailleurs engagés venus du sud de l'Inde après l'abolition de l'esclavage.",en:"The French Antilles. Colombo was brought in the nineteenth century by indentured workers from southern India after the abolition of slavery."},
-m75:{fr:"Version végétarienne du chili texan, née dans les cuisines militantes américaines des années 1970. « Sin carne » : sans viande.",en:"A vegetarian take on Texan chilli, born in American activist kitchens of the 1970s. Sin carne means without meat."},
-m76:{fr:"Tex-Mex. Les fajitas viennent des ouvriers des ranchs du Rio Grande, payés en bas morceaux dont la bavette, longtemps méprisée.",en:"Tex-Mex. Fajitas come from Rio Grande ranch workers, paid in cheap cuts including the long-scorned skirt steak."},
-m77:{fr:"Mexique. Rouler une tortilla autour d'une garniture est une pratique préhispanique ; le mot signifie simplement « pimentée ».",en:"Mexico. Rolling a tortilla around a filling is a pre-Hispanic practice; the word simply means chillied."},
-m78:{fr:"Brésil. La feijoada se sert traditionnellement le samedi, et se mange lentement : elle est réputée occuper l'après-midi entier.",en:"Brazil. Feijoada is traditionally served on Saturdays and eaten slowly: it is said to take up the whole afternoon."},
-m79:{fr:"Pérou, plat national. La technique est précolombienne ; le citron vert, lui, arriva avec les Espagnols et remplaça les fruits acides locaux.",en:"Peru, the national dish. The technique is pre-Columbian; the lime arrived with the Spanish and replaced local sour fruits."},
-m80:{fr:"Texas. Les « chili queens » de San Antonio le vendaient sur les places la nuit au XIXe siècle. Au Texas, il ne contient pas de haricots.",en:"Texas. The chilli queens of San Antonio sold it in the squares at night in the nineteenth century. In Texas it contains no beans."},
-m81:{fr:"Jefferson rapporta d'Europe une machine à pâtes et le goût du macaroni au fromage. Kraft en fit un produit en boîte en 1937, en pleine Dépression.",en:"Jefferson brought back a pasta machine from Europe along with a taste for macaroni cheese. Kraft boxed it in 1937, in the depths of the Depression."},
-m82:{fr:"Le steak haché « à la mode de Hambourg » traversa l'Atlantique avec les migrants allemands ; les Américains le mirent dans du pain.",en:"Hamburg-style minced steak crossed the Atlantic with German migrants; Americans put it in bread."},
-m83:{fr:"Hongrie. « Gulyás » signifie bouvier : c'était le ragoût des gardiens de troupeaux dans la plaine, au paprika séché qui se transportait facilement.",en:"Hungary. Gulyás means herdsman: the stew of cattle drovers on the plain, using dried paprika that travelled easily."},
-m84:{fr:"Alsace. La fermentation du chou serait venue d'Asie centrale par les routes commerciales, bien avant d'être une spécialité alsacienne.",en:"Alsace. Cabbage fermentation is thought to have come from Central Asia along trade routes, long before becoming an Alsatian speciality."},
-m85:{fr:"Suède. La tradition veut que Charles XII ait rapporté la recette de son long exil en territoire ottoman, au début du XVIIIe siècle.",en:"Sweden. Tradition holds that Charles XII brought the recipe back from his long exile in Ottoman territory in the early eighteenth century."},
-m86:{fr:"Royaume-Uni. Le nom distingue la viande : « shepherd's » à l'agneau, « cottage » au bœuf. Les deux recyclaient le rôti du dimanche.",en:"Britain. The name distinguishes the meat: shepherd's for lamb, cottage for beef. Both recycled the Sunday roast."},
-m87:{fr:"Royaume-Uni. Héritage du poisson du vendredi, et de siècles de cuisine côtière où la purée servait de couvercle étanche.",en:"Britain. A legacy of Friday fish and of centuries of coastal cooking, where mash served as a watertight lid."},
-m88:{fr:"Mali et Sénégal. Le mafé est bâti sur la pâte d'arachide, cultivée massivement en Afrique de l'Ouest depuis le XIXe siècle.",en:"Mali and Senegal. Mafé is built on groundnut paste, grown on a large scale in West Africa since the nineteenth century."},
-m89:{fr:"Casamance, Sénégal. Le yassa repose sur une marinade longue au citron et à l'oignon, qui attendrit et parfume avant même la cuisson.",en:"Casamance, Senegal. Yassa rests on a long lemon and onion marinade that tenderises and flavours before any cooking begins."},
-m90:{fr:"Nord de l'Espagne. Les fabes et le chorizo forment la base des potées asturiennes, que l'on décline du plus simple au plus copieux.",en:"Northern Spain. Beans and chorizo form the base of Asturian stews, from the simplest version to the most substantial."}
-};
-
-/* ===== ORIGINE DES DESSERTS ===== */
-Object.assign(ORIGINES, {
-d01:{fr:"Le mot vient du latin « composita », mélange. Cuire les fruits dans le sucre fut d'abord une technique de conservation, pas un dessert.",en:"The word comes from the Latin composita, a mixture. Cooking fruit in sugar was first a means of preservation, not a dessert."},
-d02:{fr:"Le riz au lait est antique, mais il fut longtemps un luxe : le riz venait d'Asie et le sucre était vendu chez l'apothicaire.",en:"Rice pudding is ancient but was long a luxury: rice came from Asia and sugar was sold by the apothecary."},
-d03:{fr:"La salade de fruits doit tout au sucre et au froid : avant la réfrigération domestique, on la servait aussitôt coupée.",en:"Fruit salad owes everything to sugar and cold: before domestic refrigeration it was served the moment it was cut."},
-d04:{fr:"Méditerranée orientale. Le trio yaourt, miel et noix figure déjà dans les descriptions antiques des tables grecques.",en:"The eastern Mediterranean. The trio of yoghurt, honey and walnuts already appears in ancient descriptions of Greek tables."},
-d05:{fr:"On attribue volontiers l'invention à Toulouse-Lautrec, qui l'aurait appelée « mayonnaise de chocolat ». L'anecdote est jolie et mal documentée.",en:"The invention is often credited to Toulouse-Lautrec, who supposedly called it chocolate mayonnaise. The story is charming and poorly documented."},
-d06:{fr:"Le fromage blanc est un fromage arrêté en chemin : caillé, égoutté, jamais affiné. Le coulis n'est là que pour l'acidité.",en:"Fromage blanc is a cheese stopped halfway: curdled, drained, never ripened. The coulis is there only for acidity."},
-d07:{fr:"Antilles et océan Indien. La banane rôtie au rhum est un dessert de fin de repas créole, né là où les deux poussent côte à côte.",en:"The Caribbean and Indian Ocean. Bananas roasted with rum are a creole end-of-meal dessert, born where both grow side by side."},
-d08:{fr:"Dessert d'enfance français, cousin du riz au lait. La semoule de blé dur cuit en huit minutes là où le riz en demande trente.",en:"A French childhood dessert, cousin to rice pudding. Durum semolina cooks in eight minutes where rice needs thirty."},
-d09:{fr:"Le plus simple des desserts au four : une pomme évidée tient debout, se remplit et cuit dans sa propre peau.",en:"The simplest of baked desserts: a cored apple stands up, fills up and cooks inside its own skin."},
-d10:{fr:"Britannique et né du rationnement : pendant la Seconde Guerre mondiale, le crumble demandait bien moins de farine et de beurre qu'une tourte.",en:"British, and born of rationing: during the Second World War a crumble needed far less flour and butter than a pie."},
-d11:{fr:"Médiéval, et le nom dit tout : c'est du pain perdu, rattrapé. Les Anglais l'appellent « French toast », les Espagnols « torrijas ».",en:"Medieval, and the French name says it all: lost bread, rescued. The English call it French toast, the Spanish torrijas."},
-d12:{fr:"Europe médiévale. Pocher un fruit dur dans du vin épicé le rendait mangeable et le conservait plusieurs jours.",en:"Medieval Europe. Poaching a hard fruit in spiced wine made it edible and kept it for several days."},
-d13:{fr:"Le premier gâteau que font les enfants français, parce qu'il se mesure au pot de yaourt vide : pas de balance, pas d'excuse.",en:"The first cake French children make, because it is measured in empty yoghurt pots: no scales, no excuses."},
-d14:{fr:"Piémont. « Panna cotta » veut dire crème cuite, ce qui est presque un contresens : elle n'est que chauffée, jamais bouillie.",en:"Piedmont. Panna cotta means cooked cream, which is almost a misnomer: it is only warmed, never boiled."},
-d15:{fr:"Chicago, 1893. Une pâtissière du Palmer House aurait créé ce gâteau dense pour les paniers-repas de l'Exposition universelle.",en:"Chicago, 1893. A pastry cook at the Palmer House is said to have created this dense cake for lunch baskets at the World's Fair."},
-d16:{fr:"Massachusetts, années 1930. Ruth Wakefield cassa du chocolat dans sa pâte en espérant qu'il fondrait. Il ne fondit pas, et tant mieux.",en:"Massachusetts, 1930s. Ruth Wakefield broke chocolate into her dough expecting it to melt. It didn't, and so much the better."},
-d17:{fr:"Commercy, en Lorraine. La bosse vient du choc thermique : pâte froide, four très chaud. Proust en a fait le reste.",en:"Commercy, in Lorraine. The hump comes from thermal shock: cold batter, very hot oven. Proust did the rest."},
-d18:{fr:"Le plus récent de ce carnet : le smoothie bowl est né dans les années 2010, sur les réseaux autant que dans les cuisines.",en:"The most recent thing in this book: the smoothie bowl appeared in the 2010s, on social media as much as in kitchens."},
-d19:{fr:"Limousin. La tradition veut qu'on laisse les noyaux : ils parfumeraient la pâte à l'amande pendant la cuisson.",en:"Limousin. Tradition says to leave the stones in: they are held to lend an almond note during baking."},
-d20:{fr:"Né sur internet au milieu des années 2000. Sa raison d'être est arithmétique : un gâteau pour une personne, en quatre-vingt-dix secondes.",en:"Born on the internet in the mid 2000s. Its reason to exist is arithmetic: a cake for one person, in ninety seconds."},
-d21:{fr:"Lamotte-Beuvron, Sologne. Les sœurs Tatin auraient raté une tarte aux pommes et l'auraient rattrapée en posant la pâte par-dessus.",en:"Lamotte-Beuvron, in the Sologne. The Tatin sisters are said to have botched an apple tart and saved it by laying the pastry on top."},
-d22:{fr:"Le cœur coulant fut popularisé dans les années 1980, notamment par Michel Bras en Aubrac. Tout se joue sur deux minutes de cuisson.",en:"The molten centre was popularised in the 1980s, notably by Michel Bras in the Aubrac. Everything hinges on two minutes of baking."},
-d23:{fr:"La meringue sur une crème au citron est attribuée à Elizabeth Goodfellow, pâtissière de Philadelphie au début du XIXe siècle.",en:"Meringue over lemon curd is attributed to Elizabeth Goodfellow, a Philadelphia pastry cook of the early nineteenth century."},
-d24:{fr:"Les Grecs en servaient aux athlètes d'Olympie. La version new-yorkaise, au cream cheese, ne date que de la fin du XIXe siècle.",en:"The Greeks served it to athletes at Olympia. The New York version, with cream cheese, dates only from the late nineteenth century."},
-d25:{fr:"Vénétie ou Frioul, années 1960-70. « Tira mi sù » signifie « remonte-moi » : le café et le sucre étaient censés donner un coup de fouet.",en:"Veneto or Friuli, 1960s or 70s. Tira mi sù means pick me up: the coffee and sugar were meant to give a lift."},
-d26:{fr:"Bretagne. « Far » vient du latin « far », le blé. À l'origine c'était une bouillie salée, servie avec la viande.",en:"Brittany. Far comes from the Latin far, wheat. It began as a savoury porridge served alongside meat."},
-d27:{fr:"La poudre d'amandes au fond n'est pas une gourmandise : elle absorbe le jus des pommes et empêche la pâte de détremper.",en:"The ground almonds on the base are not an indulgence: they absorb the apple juices and stop the pastry going soggy."},
-d28:{fr:"Le flan pâtissier est le gâteau des boulangeries parisiennes, vendu à la part depuis plus d'un siècle et jamais servi entier.",en:"Custard tart is the cake of Paris bakeries, sold by the slice for over a century and never served whole."},
-d29:{fr:"Le crumble aux fruits rouges est la version estivale du dessert britannique : les fruits rendent plus de jus, la croûte doit être plus épaisse.",en:"Berry crumble is the summer version of the British dessert: the fruit releases more juice, so the topping must be thicker."},
-d30:{fr:"Cuisines du palais de Topkapı, à Istanbul. Le baklava se partageait entre les janissaires lors d'une cérémonie annuelle.",en:"The kitchens of Topkapı Palace in Istanbul. Baklava was shared among the janissaries at an annual ceremony."},
-d31:{fr:"Cambo-les-Bains, XIXe siècle. Le gâteau basque d'origine était fourré à la confiture de cerise noire d'Itxassou, pas à la crème.",en:"Cambo-les-Bains, nineteenth century. The original gâteau basque was filled with black cherry jam from Itxassou, not with cream."},
-d32:{fr:"Nommée en l'honneur de la reine Charlotte, épouse de George III. Carême en tira la charlotte russe, montée avec des biscuits à la cuillère.",en:"Named in honour of Queen Charlotte, wife of George III. Carême developed the charlotte russe from it, built with sponge fingers."},
-d33:{fr:"Bordeaux. Les couvents récupéraient les jaunes d'œufs dont les chais se débarrassaient : les blancs servaient à clarifier le vin.",en:"Bordeaux. Convents took in the egg yolks the wine cellars discarded: the whites were used to fine the wine."},
-d34:{fr:"Le marbrage n'est pas décoratif à l'origine : il permettait d'utiliser deux restes de pâte dans un seul moule.",en:"Marbling was not originally decorative: it allowed two leftover batters to be used in a single tin."}
-});
-
 /* ==================================================================
    SAISONS — mois de pleine saison en France (1 = janvier)
    Seuls les produits frais figurent ici. Ce qui n'y est pas
@@ -2492,6 +1555,79 @@ function scoreTemperature(r, t) {
   return f * net;
 }
 
+/* ==================================================================
+   DONNÉES DE RECETTES
+   Elles ne sont plus dans le HTML : l'application va les chercher une
+   fois dans donnees.json. Trois filets de sécurité, dans l'ordre :
+     1. le réseau (et le service worker qui a mis le fichier en cache)
+     2. une copie locale en IndexedDB, écrite au premier chargement réussi
+     3. un message d'erreur explicite avec un bouton pour réessayer
+   ================================================================== */
+let SEED = [];
+let versionDonnees = null;
+const EN_ETAPES = {};
+const MATERIEL = {};
+const ORIGINES = {};
+
+function ouvrirDBDonnees() {
+  return new Promise((res, rej) => {
+    if (!window.indexedDB) return rej(new Error("indexedDB absent"));
+    const q = indexedDB.open("menu-donnees", 1);
+    q.onupgradeneeded = () => q.result.createObjectStore("blocs");
+    q.onsuccess = () => res(q.result);
+    q.onerror = () => rej(q.error);
+  });
+}
+
+async function lireMiroir() {
+  try {
+    const db = await ouvrirDBDonnees();
+    return await new Promise(res => {
+      const q = db.transaction("blocs").objectStore("blocs").get("donnees");
+      q.onsuccess = () => res(q.result || null);
+      q.onerror = () => res(null);
+    });
+  } catch (e) { return null; }
+}
+
+async function ecrireMiroir(d) {
+  try {
+    const db = await ouvrirDBDonnees();
+    db.transaction("blocs", "readwrite").objectStore("blocs").put(d, "donnees");
+  } catch (e) { /* le miroir est un confort, pas une obligation */ }
+}
+
+function installerDonnees(d) {
+  SEED = d.recettes || [];
+  versionDonnees = d.version || null;
+  Object.assign(EN, d.enNoms || {});
+  Object.assign(EN_ETAPES, d.enEtapes || {});
+  Object.assign(MATERIEL, d.materiel || {});
+  Object.assign(ORIGINES, d.origines || {});
+}
+
+async function chargerDonnees() {
+  let reseau = null;
+  try {
+    const rep = await fetch("donnees.json", { cache: "no-cache" });
+    if (rep.ok) reseau = await rep.json();
+  } catch (e) { /* hors ligne, ou fichier absent : on tentera le miroir */ }
+
+  if (reseau && reseau.recettes && reseau.recettes.length) {
+    installerDonnees(reseau);
+    ecrireMiroir(reseau);
+    return { source: "reseau" };
+  }
+
+  const miroir = await lireMiroir();
+  if (miroir && miroir.recettes && miroir.recettes.length) {
+    installerDonnees(miroir);
+    return { source: "miroir" };
+  }
+
+  throw new Error("donnees.json introuvable");
+}
+
 </script>
 <script>
 /* ==================================================================
@@ -2520,7 +1656,8 @@ const DEFAUTS = {
   heureMidi: "12:30", heureSoir: "19:30",      // pour l'export vers l'agenda
   jourCourses: 5, heureCourses: "10:00", alerteCuisine: 30,
   zone: "rhonealpes", forcerMeteo: "auto",   // climat : mois + région, sans réseau
-  poidsSaison: 2, poidsMeteo: 2              // influence sur le tirage (0 = aucune)
+  poidsSaison: 2, poidsMeteo: 2,             // influence sur le tirage (0 = aucune)
+  nbIA: 20                                   // recettes demandées à l'IA en une fois
 };
 
 const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
@@ -2571,7 +1708,37 @@ const store = {
   ecrire(c, v) { memoire[c] = v; try { localStorage.setItem(c, v); } catch (e) {} }
 };
 
-function poolParDefaut() { return JSON.parse(JSON.stringify([...PLATS_A, ...PLATS_B, ...DESSERTS])); }
+function poolParDefaut() { return JSON.parse(JSON.stringify(SEED)); }
+
+// Le pool de base n'est plus enregistré : seules les différences le sont.
+// Cela divise par vingt le poids de la sauvegarde et la rend indépendante
+// du nombre de recettes livrées.
+function construireRecettes(perso, ajouts) {
+  const out = [];
+  for (const s of SEED) {
+    const p = perso[s.id];
+    if (p && p.recette) { out.push({ ...p.recette, id: s.id, modifie: true }); continue; }
+    const c = JSON.parse(JSON.stringify(s));
+    if (p) { if (p.note) c.note = p.note; if (p.desactive) c.desactive = true; }
+    out.push(c);
+  }
+  for (const a of (ajouts || [])) out.push(JSON.parse(JSON.stringify(a)));
+  return out;
+}
+
+function extraireCouchePerso() {
+  const base = new Map(SEED.map(r => [r.id, r]));
+  const perso = {}, ajouts = [];
+  for (const r of state.recettes) {
+    if (!base.has(r.id)) { ajouts.push(r); continue; }
+    if (r.modifie) { perso[r.id] = { recette: r }; continue; }
+    const d = {};
+    if (r.note) d.note = r.note;
+    if (r.desactive) d.desactive = true;
+    if (Object.keys(d).length) perso[r.id] = d;
+  }
+  return { perso, ajouts };
+}
 
 let state = {
   recettes: [], plans: {}, reglages: { ...DEFAUTS }, coches: {},
@@ -2583,12 +1750,29 @@ function charger() {
   if (brut) {
     try {
       const d = JSON.parse(brut);
-      state.recettes = (d.recettes && d.recettes.length) ? completerPool(d.recettes) : poolParDefaut();
       state.plans = d.plans || {};
       state.coches = d.coches || {};
       state.quizReponses = d.quizReponses || [];
       state.prixPerso = d.prixPerso || {};
       state.reglages = { ...DEFAUTS, ...(d.reglages || {}) };
+      if (d.perso || d.ajouts) {
+        state.recettes = construireRecettes(d.perso || {}, d.ajouts || []);
+      } else if (d.recettes && d.recettes.length) {
+        // sauvegarde d'une version antérieure : on en tire la couche personnelle
+        state.recettes = construireRecettes({}, []);
+        const base = new Map(SEED.map(r => [r.id, r]));
+        const enPlus = [];
+        for (const r of d.recettes) {
+          const cible = state.recettes.find(x => x.id === r.id);
+          if (!cible) { if (!base.has(r.id)) enPlus.push(r); continue; }
+          if (r.note) cible.note = r.note;
+          if (r.desactive) cible.desactive = true;
+          if (r.modifie) { Object.assign(cible, r); cible.modifie = true; }
+        }
+        state.recettes.push(...enPlus);
+      } else {
+        state.recettes = poolParDefaut();
+      }
       return;
     } catch (e) {}
   }
@@ -2607,16 +1791,17 @@ function charger() {
   }
 }
 
-// un pool sauvegardé peut dater d'une version antérieure : on ajoute les recettes manquantes
-function completerPool(anciennes) {
-  const out = anciennes.slice();
-  const noms = new Set(out.map(r => r.nom));
-  for (const r of poolParDefaut()) if (!noms.has(r.nom)) out.push(r);
-  for (const r of out) if (!r.categorie) r.categorie = "plat";
-  return out;
+let sauveId = null;
+function sauverMaintenant() {
+  sauveId = null;
+  const { perso, ajouts } = extraireCouchePerso();
+  store.ecrire("menu-semaine-v3", JSON.stringify({
+    plans: state.plans, coches: state.coches, quizReponses: state.quizReponses,
+    prixPerso: state.prixPerso, reglages: state.reglages, perso, ajouts
+  }));
 }
-
-function sauver() { store.ecrire("menu-semaine-v3", JSON.stringify(state)); }
+function sauver() { clearTimeout(sauveId); sauveId = setTimeout(sauverMaintenant, 400); }
+function viderSauvegarde() { if (sauveId) { clearTimeout(sauveId); sauverMaintenant(); } }
 
 /* ==================================================================
    SEMAINES
@@ -3048,6 +2233,7 @@ function euros(x) { return (Math.round(x * 100) / 100).toFixed(2).replace(".", "
    ================================================================== */
 let onglet = "semaine", recetteOuverte = null, echelleFiche = null, ecranQuiz = null;
 let coursesOuvertes = new Set();   // articles dépliés dans la liste de courses
+let recherche = "", filtres = new Set(), limiteListe = 60, focusRecherche = false;
 
 // Position de défilement mémorisée par vue : régler un paramètre ou cocher un
 // article ne doit pas renvoyer en haut de page. Changer d'onglet, de semaine ou
@@ -3055,7 +2241,7 @@ let coursesOuvertes = new Set();   // articles dépliés dans la liste de course
 let cleVue = null;
 const defilements = {};
 function cleDeVue() {
-  return onglet + "|" + (recetteOuverte || "") + "|" + (ecranQuiz === null ? "" : "q" + ecranQuiz) + "|" + semaineCourante;
+  return (revueIA ? "revue" : onglet) + "|" + (recetteOuverte || "") + "|" + (ecranQuiz === null ? "" : "q" + ecranQuiz) + "|" + semaineCourante;
 }
 
 function $(s) { return document.querySelector(s); }
@@ -3068,7 +2254,8 @@ function rendre() {
   cleVue = nouvelle;
   const y = defilements[nouvelle] || 0;
   v.innerHTML = "";
-  if (ecranQuiz !== null) rendreQuiz(v);
+  if (revueIA) rendreRevue(v);
+  else if (ecranQuiz !== null) rendreQuiz(v);
   else if (recetteOuverte) rendreRecette(v);
   else if (onglet === "semaine") rendreSemaine(v);
   else if (onglet === "courses") rendreCourses(v);
@@ -3078,7 +2265,7 @@ function rendre() {
   const NOMS_ONGLETS = { semaine: "Semaine", courses: "Courses", budget: "Budget", recettes: "Recettes", reglages: "Réglages" };
   document.querySelectorAll(".tab").forEach(t => {
     t.textContent = trad(NOMS_ONGLETS[t.dataset.onglet]);
-    t.classList.toggle("actif", t.dataset.onglet === onglet && !recetteOuverte && ecranQuiz === null);
+    t.classList.toggle("actif", t.dataset.onglet === onglet && !recetteOuverte && ecranQuiz === null && !revueIA);
   });
   const titreApp = document.querySelector(".titre");
   if (titreApp) titreApp.textContent = trad("Menu de la semaine");
@@ -3487,18 +2674,56 @@ function rendreBudget(vue) {
 function rendreRecettes(vue) {
   const barre = el("div", "barre");
   const b1 = el("button", "cta-secondaire", "Ajouter"); b1.onclick = () => ouvrirEditeur(null); barre.appendChild(b1);
-  const b2 = el("button", "cta-secondaire", "Proposer des recettes"); b2.onclick = proposerParIA; barre.appendChild(b2);
+  const bi = el("button", "cta-secondaire", "Importer"); bi.onclick = ouvrirImport; barre.appendChild(bi);
+  const b2 = el("button", "cta-secondaire", "Proposer des recettes"); b2.onclick = () => proposerParIA(); barre.appendChild(b2);
   vue.appendChild(barre);
 
   const actives = poolActif();
   const gout = calibrerGout(actives);
   const vus = derniereUtilisation();
+  const mois = moisNum(semaineCourante);
 
+  const champ = el("input", "champ-texte recherche");
+  champ.type = "search";
+  champ.placeholder = trad("Chercher un plat, une cuisine, un ingrédient");
+  champ.value = recherche;
+  champ.oninput = () => { recherche = champ.value; limiteListe = 60; focusRecherche = true; rendre(); };
+  vue.appendChild(champ);
+
+  const FILTRES = [
+    ["rapide", "30 min ou moins", r => r.minutes <= 30],
+    ["veg", "Végétarien", r => r.veg],
+    ["saison", "De saison", r => scoreSaison(r, mois) > 0],
+    ["aimees", "Bien notées", r => (r.note || 0) >= 4],
+    ["jamais", "Jamais faites", r => vus[r.id] === undefined]
+  ];
+  const gf = el("div", "moments");
+  for (const [cle, lib] of FILTRES) {
+    const c = el("button", "chip" + (filtres.has(cle) ? " on" : ""), lib);
+    c.onclick = () => { if (filtres.has(cle)) filtres.delete(cle); else filtres.add(cle); limiteListe = 60; rendre(); };
+    gf.appendChild(c);
+  }
+  vue.appendChild(gf);
+
+  const q = recherche.trim().toLowerCase();
+  const correspond = r => {
+    if (q && !(r.nom.toLowerCase().indexOf(q) >= 0
+      || (NOM_CUISINE[r.cuisine] || "").toLowerCase().indexOf(q) >= 0
+      || r.base.indexOf(q) >= 0
+      || r.ing.some(i => i.n.toLowerCase().indexOf(q) >= 0))) return false;
+    for (const [cle, , test] of FILTRES) if (filtres.has(cle) && !test(r)) return false;
+    return true;
+  };
+
+  let montrees = 0, totalTrouve = 0;
   for (const cat of ["plat", "dessert"]) {
-    const liste = state.recettes.filter(r => (r.categorie || "plat") === cat)
+    const liste = state.recettes.filter(r => (r.categorie || "plat") === cat && correspond(r))
       .sort((a, b) => (b.note || 0) - (a.note || 0) || gout(b) - gout(a) || a.nom.localeCompare(b.nom, "fr"));
+    totalTrouve += liste.length;
+    if (!liste.length) continue;
     vue.appendChild(el("h3", null, (cat === "plat" ? "Plats" : "Desserts") + " · " + liste.length));
-    for (const r of liste) {
+    for (const r of liste.slice(0, Math.max(0, limiteListe - montrees))) {
+      montrees++;
       const l = el("div", "recette" + (r.desactive ? " off" : ""));
       const ir = el("span", "ic ic-plat"); ir.innerHTML = svgIcone(iconePlat(r), 20);
       l.appendChild(ir);
@@ -3516,6 +2741,19 @@ function rendreRecettes(vue) {
       t.querySelector(".recette-nom").onclick = () => { echelleFiche = null; recetteOuverte = r.id; rendre(); };
       vue.appendChild(l);
     }
+  }
+
+  if (!totalTrouve) vue.appendChild(el("div", "vide", "Aucune recette ne correspond."));
+  else if (totalTrouve > montrees) {
+    const bp = el("button", "cta-secondaire", trad("Afficher plus") + " (" + (totalTrouve - montrees) + ")");
+    bp.onclick = () => { limiteListe += 60; rendre(); };
+    vue.appendChild(bp);
+  }
+
+  if (focusRecherche) {
+    focusRecherche = false;
+    champ.focus();
+    try { champ.setSelectionRange(champ.value.length, champ.value.length); } catch (e) {}
   }
 }
 
@@ -3684,6 +2922,7 @@ function ouvrirEditeur(id) {
       if (!o.id || !o.nom || !Array.isArray(o.ing) || !Array.isArray(o.etapes)) throw new Error("champs manquants");
       o.batch = Number(o.batch) || 1; o.keeps = Number(o.keeps) || 2; o.minutes = Number(o.minutes) || 30;
       o.categorie = o.categorie || "plat";
+      o.modifie = true;
       const i = state.recettes.findIndex(x => x.id === o.id);
       if (i >= 0) state.recettes[i] = o; else state.recettes.push(o);
       sauver(); fermerModale(); rendre();
@@ -3806,6 +3045,7 @@ function rendreReglages(vue) {
   inp.onchange = () => { r.cle = inp.value.trim(); sauver(); }; b6.appendChild(inp);
   const inpM = el("input", "champ-texte"); inpM.value = r.modele;
   inpM.onchange = () => { r.modele = inpM.value.trim() || DEFAUTS.modele; sauver(); }; b6.appendChild(inpM);
+  b6.appendChild(champNombre("Recettes demandées en une fois", r.nbIA, 1, 60, v => { r.nbIA = v; sauver(); }));
   vue.appendChild(b6);
 
   const b7 = el("div", "bloc");
@@ -3924,14 +3164,31 @@ function toast(t, ms) {
   clearTimeout(tId); tId = setTimeout(() => z.classList.remove("visible"), ms || 2600);
 }
 
-function init() {
+async function init() {
+  const v = $("#vue");
+  v.innerHTML = "";
+  v.appendChild(el("div", "vide centre", "Chargement des recettes…"));
+  try {
+    await chargerDonnees();
+  } catch (e) {
+    v.innerHTML = "";
+    v.appendChild(el("h2", "fiche-titre", "Recettes introuvables"));
+    v.appendChild(el("p", null, "Le fichier donnees.json n'a pas pu être chargé. Il doit se trouver à côté de index.html."));
+    const b = el("button", "cta", "Réessayer");
+    b.onclick = () => init();
+    v.appendChild(b);
+    return;
+  }
   charger(); recalculerProfil(); appliquerTheme();
   document.querySelectorAll(".tab").forEach(t => {
-    t.onclick = () => { onglet = t.dataset.onglet; recetteOuverte = null; echelleFiche = null; ecranQuiz = null; rendre(); };
+    t.onclick = () => { onglet = t.dataset.onglet; recetteOuverte = null; echelleFiche = null; ecranQuiz = null; revueIA = null;
+      recherche = ""; filtres.clear(); limiteListe = 60; rendre(); };
   });
   $("#prec").onclick = () => { semaineCourante--; coursesOuvertes.clear(); oublierDefilement(); recetteOuverte = null; ecranQuiz = null; rendre(); };
   $("#suiv").onclick = () => { semaineCourante++; coursesOuvertes.clear(); oublierDefilement(); recetteOuverte = null; ecranQuiz = null; rendre(); };
   $("#modale").onclick = e => { if (e.target.id === "modale") fermerModale(); };
+  window.addEventListener("pagehide", viderSauvegarde);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") viderSauvegarde(); });
   rendre();
 }
 document.addEventListener("DOMContentLoaded", init);
@@ -3940,8 +3197,9 @@ document.addEventListener("DOMContentLoaded", init);
    APPARENCE, LANGUE, RÉGIMES  — bloc placé en tête des Réglages
    ================================================================== */
 function etapesDe(r) {
-  if (state.reglages.langue === "en" && EN_ETAPES[r.id]) return EN_ETAPES[r.id];
-  return r.etapes;
+  // une recette écrite ou corrigée par l'utilisateur s'affiche telle quelle, dans les deux langues
+  if (r.modifie || state.reglages.langue !== "en") return r.etapes;
+  return EN_ETAPES[r.id] || r.etapes;
 }
 
 function rangeeChips(vue, titre, options, estActif, auClic, aide) {
@@ -4526,6 +3784,441 @@ function ligneIcone(cle, texte, droite) {
   l.appendChild(el("span", "avec-icone-txt", texte));
   if (droite) l.appendChild(droite);
   return l;
+}
+
+/* ==================================================================
+   NORMALISATION
+   Tout ce qui entre dans le pool passe par ici : import, IA, édition.
+   ================================================================== */
+const UNITES_OK = ["g", "kg", "ml", "cl", "l", "pièce", "gousse", "cube", "bouquet", "tranche", "pincée", "c.à.s", "c.à.c"];
+const BASES_OK = ["boeuf", "volaille", "porc", "agneau", "poisson", "fruitsdemer", "legumineuse",
+  "legume", "oeuf", "pates", "riz", "tofu", "cereale", "chocolat", "fruit", "creme", "patisserie"];
+const TRAITS_OK = ["epice", "mijote", "four", "fromage", "soupe", "salade", "froid", "rapide",
+  "legumes", "long", "sucresale", "cru", "patisserie", "fruit", "creme", "chocolat"];
+
+// catégorie d'illustration -> rayon, pour deviner le rayon d'un ingrédient inconnu
+const CAT_RAYON = {
+  poisson: "viande", viandeRouge: "viande", volaille: "viande", porc: "viande", fruitsDeMer: "viande",
+  laitage: "cremerie", fromage: "cremerie", oeuf: "cremerie", pate: "cremerie",
+  racine: "legumes", feuille: "legumes", legumeFruit: "legumes", oignon: "legumes",
+  champignon: "legumes", agrume: "legumes", fruit: "legumes", herbe: "legumes",
+  pates: "epicerie", cereale: "epicerie", legumineuse: "epicerie", conserve: "epicerie",
+  epice: "epicerie", liquide: "epicerie", farine: "epicerie", chocolat: "epicerie", noix: "epicerie",
+  pain: "boulangerie"
+};
+
+function rayonDe(nom) { return CAT_RAYON[icone(nom, null)] || "epicerie"; }
+
+// « oignons » -> « oignon » si le singulier est connu
+function normaliserNom(n) {
+  const base = (n || "").trim().toLowerCase().replace(/\s+/g, " ");
+  const essais = [];
+  for (const v of [base, base.replace(/oe/g, "œ"), base.replace(/œ/g, "oe")]) {
+    essais.push(v);
+    if (v.endsWith("s") || v.endsWith("x")) essais.push(v.slice(0, -1));
+  }
+  for (const e of essais) if (prixConnu(e)) return e;
+  return base;
+}
+
+function normaliserRecette(x, prefixe) {
+  const avis = [];
+  const r = {
+    id: (prefixe || "u") + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36),
+    nom: String(x.nom || "").trim() || "Sans titre",
+    categorie: x.categorie === "dessert" ? "dessert" : "plat",
+    base: BASES_OK.indexOf(x.base) >= 0 ? x.base : null,
+    cuisine: CUISINES.indexOf(x.cuisine) >= 0 ? x.cuisine : "francaise",
+    traits: Array.isArray(x.traits) ? x.traits.filter(t => TRAITS_OK.indexOf(t) >= 0) : [],
+    batch: Math.max(1, Math.min(12, Math.round(Number(x.batch) || 2))),
+    keeps: Math.max(1, Math.min(10, Math.round(Number(x.keeps) || 3))),
+    minutes: Math.max(5, Math.min(300, Math.round(Number(x.minutes) || 30))),
+    froid: !!x.froid, veg: !!x.veg,
+    ing: [], etapes: []
+  };
+  if (!r.base) { r.base = "legume"; avis.push("base inconnue, mise sur « legume »"); }
+  if (x.nom === undefined || !String(x.nom).trim()) avis.push("titre manquant");
+
+  for (const i of (Array.isArray(x.ing) ? x.ing : [])) {
+    const nom = normaliserNom(i.n);
+    if (!nom) continue;
+    let u = String(i.u || "").trim();
+    if (UNITES_OK.indexOf(u) < 0) { u = "pièce"; }
+    const q = Number(String(i.q).replace(",", "."));
+    const ray = ORDRE_RAYONS.indexOf(i.r) >= 0 ? i.r : rayonDe(nom);
+    r.ing.push({ n: nom, q: isFinite(q) && q > 0 ? q : 1, u, r: ray });
+    if (!prixConnu(nom)) avis.push("prix inconnu : " + nom);
+  }
+  if (!r.ing.length) avis.push("aucun ingrédient");
+
+  for (const e of (Array.isArray(x.etapes) ? x.etapes : [])) {
+    const t = String(e).trim();
+    if (t) r.etapes.push(t);
+  }
+  if (!r.etapes.length) avis.push("aucune étape");
+  if (r.veg && r.ing.some(i => i.r === "viande")) avis.push("marquée végétarienne mais contient de la viande");
+
+  return { r, avis };
+}
+
+/* ==================================================================
+   IMPORT DEPUIS UN TEXTE COLLÉ
+   Analyse locale, sans réseau. Le résultat passe toujours par
+   l'éditeur avant d'entrer dans le pool.
+   ================================================================== */
+// unités reconnues en tête de reste, après la quantité. L'ordre compte : kg avant g, cl avant l.
+const UNITES_TETE = [
+  [/^(kg|kilos?|kilogrammes?)\b\.?/i, "kg"],
+  [/^(g|gr|grammes?)\b\.?/i, "g"],
+  [/^(ml|millilitres?)\b\.?/i, "ml"],
+  [/^(cl|centilitres?)\b\.?/i, "cl"],
+  [/^(l|litres?)\b\.?/i, "l"],
+  [/^(c\.?\s*à\.?\s*s\.?|cuill?[eè]res?\s*à\s*soupe|càs|cas)\.?/i, "c.à.s"],
+  [/^(c\.?\s*à\.?\s*c\.?|cuill?[eè]res?\s*à\s*caf[eé]|càc|cac)\.?/i, "c.à.c"],
+  [/^(gousses?)\b\.?/i, "gousse"],
+  [/^(pinc[eé]es?)\b\.?/i, "pincée"],
+  [/^(tranches?)\b\.?/i, "tranche"],
+  [/^(bottes?|bouquets?|brins?)\b\.?/i, "bouquet"],
+  [/^(sachets?|bo[iî]tes?|cubes?)\b\.?/i, "cube"]
+];
+
+// une ligne d'ingrédient -> {n, q, u, r}, ou null si ce n'en est pas une
+function analyserLigneIng(ligne) {
+  const m = ligne.match(/^[-–—•*]?\s*(\d+(?:[.,]\d+)?)\s*(.+)$/);
+  if (!m) return null;
+  const q = Number(m[1].replace(",", "."));
+  if (!isFinite(q) || q <= 0) return null;
+
+  let reste = m[2].trim(), u = null;
+  for (const [re, unite] of UNITES_TETE) {
+    const t = reste.match(re);
+    if (t) { u = unite; reste = reste.slice(t[0].length).trim(); break; }
+  }
+  reste = reste
+    .replace(/^(?:de\s+la\s+|de\s+l'|du\s+|des\s+|de\s+|d')/i, "")
+    .replace(/\(.*?\)/g, "")
+    .replace(/[,;.]+$/, "")
+    .trim();
+  if (reste.length < 2 || reste.length > 45) return null;
+
+  const n = normaliserNom(reste);
+  return { n, q, u: u || "pièce", r: rayonDe(n) };
+}
+
+function analyserTexte(txt) {
+  const lignes = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const ing = [], etapes = [];
+  let titre = "", minutes = null, portions = null, section = null;
+
+  const reTemps = /(\d+)\s*(?:min|minutes)/i;
+  const rePort = /(?:pour|sert|serves)\s*(\d+)\s*(?:personnes?|parts?|portions?)/i;
+
+  for (const l of lignes) {
+    const bas = l.toLowerCase();
+    if (/^(ingr[eé]dients?|pour la garniture|liste des courses)\b/.test(bas)) { section = "ing"; continue; }
+    if (/^(pr[eé]paration|instructions?|[eé]tapes?|m[eé]thode|r[eé]alisation)\b/.test(bas)) { section = "etapes"; continue; }
+
+    const p = l.match(rePort); if (p && portions === null) portions = Number(p[1]);
+    const t = l.match(reTemps); if (t && minutes === null && l.length < 70) minutes = Number(t[1]);
+
+    const candidat = (section !== "etapes" && l.length <= 70) ? analyserLigneIng(l) : null;
+    if (candidat) { ing.push(candidat); continue; }
+
+    if (!titre && l.length <= 80 && !/\d\s*(min|personne|portion)/i.test(l)) {
+      titre = l.replace(/[:•\-–]+$/, "").trim();
+      continue;
+    }
+    if (l.length > 25 || section === "etapes") etapes.push(l.replace(/^\d+[).\s]+/, "").trim());
+  }
+
+  // ingrédients identiques fusionnés
+  const fusion = [];
+  for (const i of ing) {
+    const d = fusion.find(x => x.n === i.n && x.u === i.u);
+    if (d) d.q += i.q; else fusion.push(i);
+  }
+
+  return normaliserRecette({
+    nom: titre, batch: portions || 2, minutes: minutes || 30, keeps: 3,
+    ing: fusion, etapes, traits: (minutes || 30) <= 30 ? ["rapide"] : []
+  }, "imp");
+}
+
+/* --- import depuis une adresse : marche si le site autorise le navigateur --- */
+async function analyserUrl(url) {
+  const rep = await fetch(url, { mode: "cors" });
+  if (!rep.ok) throw new Error("HTTP " + rep.status);
+  const html = await rep.text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  let recette = null;
+  for (const s of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    let d;
+    try { d = JSON.parse(s.textContent); } catch (e) { continue; }
+    const pile = Array.isArray(d) ? d.slice() : [d];
+    while (pile.length) {
+      const o = pile.shift();
+      if (!o || typeof o !== "object") continue;
+      if (o["@graph"]) pile.push(...o["@graph"]);
+      const t = o["@type"];
+      if (t === "Recipe" || (Array.isArray(t) && t.indexOf("Recipe") >= 0)) { recette = o; break; }
+    }
+    if (recette) break;
+  }
+  if (!recette) throw new Error("aucune recette balisée sur cette page");
+
+  const etapes = [];
+  const ajouter = x => {
+    if (!x) return;
+    if (typeof x === "string") etapes.push(x.trim());
+    else if (Array.isArray(x)) x.forEach(ajouter);
+    else if (x.text) etapes.push(String(x.text).trim());
+    else if (x.itemListElement) ajouter(x.itemListElement);
+  };
+  ajouter(recette.recipeInstructions);
+
+  const ing = [];
+  for (const l of (recette.recipeIngredient || [])) {
+    const a = analyserTexte("X\nIngrédients\n" + l);
+    if (a.r.ing.length) ing.push(a.r.ing[0]);
+  }
+  const duree = String(recette.totalTime || recette.cookTime || "").match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  const minutes = duree ? (Number(duree[1] || 0) * 60 + Number(duree[2] || 0)) || 30 : 30;
+
+  return normaliserRecette({
+    nom: recette.name, batch: Number(recette.recipeYield) || 2,
+    minutes, keeps: 3, ing, etapes
+  }, "imp");
+}
+
+/* --- import assisté par l'IA, plus fiable sur un texte désordonné --- */
+async function analyserParIA(txt) {
+  const cle = state.reglages.cle;
+  if (!cle) throw new Error("aucune clé API");
+  const rep = await appelIA(
+    "Convertis cette recette en JSON, sans rien inventer. Garde les unités métriques.\n" +
+    schemaIA(1) + "\n\nRecette :\n" + txt.slice(0, 12000), 2000);
+  const arr = JSON.parse(rep);
+  return normaliserRecette(Array.isArray(arr) ? arr[0] : arr, "imp");
+}
+
+/* ==================================================================
+   APPEL À L'API
+   ================================================================== */
+function schemaIA(n) {
+  return "Réponds uniquement par un tableau JSON de " + n + " objet(s), sans texte ni balises autour :\n" +
+    '[{"nom":"...","categorie":"plat|dessert","base":"' + BASES_OK.join("|") + '",' +
+    '"cuisine":"' + CUISINES.join("|") + '","traits":["' + TRAITS_OK.slice(0, 6).join('","') + '"],' +
+    '"batch":2,"keeps":3,"minutes":30,"froid":true,"veg":false,' +
+    '"ing":[{"n":"oignon","q":2,"u":"pièce","r":"legumes"}],"etapes":["...","..."]}]\n' +
+    'Unités autorisées : ' + UNITES_OK.join(", ") + '. Rayons : ' + ORDRE_RAYONS.join(", ") + '. ' +
+    'Traits autorisés : ' + TRAITS_OK.join(", ") + '.';
+}
+
+async function appelIA(prompt, maxTokens) {
+  const r = state.reglages;
+  const rep = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json", "x-api-key": r.cle,
+      "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({ model: r.modele, max_tokens: maxTokens || 8000, messages: [{ role: "user", content: prompt }] })
+  });
+  if (!rep.ok) throw new Error("API " + rep.status + " : " + (await rep.text()).slice(0, 120));
+  const d = await rep.json();
+  return d.content.map(b => b.type === "text" ? b.text : "").join("")
+    .replace(/```json/g, "").replace(/```/g, "").trim();
+}
+
+/* ==================================================================
+   INTERFACE D'IMPORT
+   ================================================================== */
+function ouvrirImport() {
+  const carte = feuille("Importer une recette");
+  carte.appendChild(el("p", "petit", "Collez le texte d'une recette, ou son adresse. Vous relisez et corrigez avant qu'elle rejoigne le pool."));
+
+  const ta = el("textarea", "editeur");
+  ta.placeholder = "Tarte aux poireaux\nPour 4 personnes · 45 min\n\nIngrédients\n3 poireaux\n200 g de crème fraîche\n3 œufs\n\nPréparation\nÉmincer les poireaux et les faire fondre 15 min.\n…";
+  carte.appendChild(ta);
+
+  const url = el("input", "champ-texte");
+  url.type = "url"; url.placeholder = "https://… (adresse d'une recette)";
+  carte.appendChild(url);
+
+  const finir = (res) => {
+    fermerModale();
+    editerProposition(res.r, res.avis);
+  };
+
+  const b1 = el("button", "cta", "Analyser le texte");
+  b1.onclick = () => {
+    if (!ta.value.trim()) { toast("Collez d'abord une recette."); return; }
+    finir(analyserTexte(ta.value));
+  };
+  carte.appendChild(b1);
+
+  if (state.reglages.cle) {
+    const b2 = el("button", "cta-secondaire", "Analyser avec l'IA");
+    b2.onclick = async () => {
+      if (!ta.value.trim()) { toast("Collez d'abord une recette."); return; }
+      toast("Analyse en cours…", 60000);
+      try { finir(await analyserParIA(ta.value)); }
+      catch (e) { toast("Échec : " + e.message); }
+    };
+    carte.appendChild(b2);
+  }
+
+  const b3 = el("button", "cta-secondaire", "Depuis une adresse");
+  b3.onclick = async () => {
+    if (!url.value.trim()) { toast("Entrez une adresse."); return; }
+    toast("Lecture de la page…", 30000);
+    try { finir(await analyserUrl(url.value.trim())); }
+    catch (e) {
+      toast("Page illisible depuis le navigateur. Copiez son texte dans le cadre.", 6000);
+    }
+  };
+  carte.appendChild(b3);
+
+  const b4 = el("button", "cta-secondaire", "Annuler");
+  b4.onclick = fermerModale;
+  carte.appendChild(b4);
+}
+
+function editerProposition(r, avis) {
+  const carte = feuille("Relire avant d'ajouter");
+  if (avis && avis.length) {
+    const n = el("div", "note");
+    n.textContent = trad("À vérifier") + " : " + avis.join(" · ");
+    carte.appendChild(n);
+  }
+  carte.appendChild(el("p", "petit", "batch = portions correspondant aux quantités. Rayons : " + ORDRE_RAYONS.join(", ") + "."));
+  const ta = el("textarea", "editeur");
+  ta.value = JSON.stringify(r, null, 2);
+  carte.appendChild(ta);
+
+  const ok = el("button", "cta", "Ajouter au pool");
+  ok.onclick = () => {
+    try {
+      const o = JSON.parse(ta.value);
+      const { r: propre } = normaliserRecette(o, "imp");
+      propre.id = o.id || propre.id;
+      propre.modifie = true;
+      state.recettes.push(propre);
+      sauver(); fermerModale(); onglet = "recettes"; rendre();
+      toast("Recette ajoutée");
+    } catch (e) { toast("JSON invalide : " + e.message); }
+  };
+  carte.appendChild(ok);
+  const an = el("button", "cta-secondaire", "Annuler");
+  an.onclick = fermerModale;
+  carte.appendChild(an);
+}
+
+/* ==================================================================
+   GÉNÉRATION EN LOT + ÉCRAN DE RELECTURE
+   ================================================================== */
+let revueIA = null;
+
+async function proposerParIA() {
+  if (!state.reglages.cle) { onglet = "reglages"; rendre(); toast("Renseignez d'abord une clé API."); return; }
+  const total = Math.max(1, Math.min(60, state.reglages.nbIA || 20));
+  const noms = state.recettes.map(r => r.nom).join(" ; ");
+  const brut = [];
+
+  try {
+    for (let fait = 0; fait < total; fait += 10) {
+      const n = Math.min(10, total - fait);
+      toast("Génération… " + fait + " / " + total, 120000);
+      const prompt =
+        "Tu écris des recettes originales pour une application de menu hebdomadaire, en français, " +
+        "pour quelqu'un qui cuisine en France et fait ses courses chez Grand Frais, Carrefour et Auchan.\n" +
+        "Format visé : deux portions, ingrédients courants et déjà portionnés.\n" +
+        "Les étapes doivent être DÉTAILLÉES : 6 à 8 étapes, la préparation séparée de la cuisson, " +
+        "le niveau de feu précisé, un repère visuel de cuisson quand c'est utile (« jusqu'à ce que les bords se décollent »), " +
+        "et une durée explicite à chaque étape de cuisson. Une étape fait une à deux phrases.\n" +
+        "N'imite aucune marque ni aucun texte existant : écris tes propres recettes." +
+        resumeProfil() + "\n" +
+        "Ne propose aucune de ces recettes déjà présentes : " + noms + "\n\n" + schemaIA(n);
+      const txt = await appelIA(prompt, 12000);
+      const arr = JSON.parse(txt);
+      if (Array.isArray(arr)) brut.push(...arr);
+    }
+  } catch (e) {
+    toast("Échec : " + e.message, 6000);
+    if (!brut.length) return;
+  }
+
+  const connus = new Set(state.recettes.map(r => r.nom.toLowerCase()));
+  revueIA = [];
+  for (const x of brut) {
+    const { r, avis } = normaliserRecette(x, "ia");
+    if (connus.has(r.nom.toLowerCase())) { avis.push("déjà dans le pool"); }
+    connus.add(r.nom.toLowerCase());
+    revueIA.push({ r, avis, garder: avis.length === 0 });
+  }
+  recetteOuverte = null; ecranQuiz = null;
+  rendre();
+  toast(revueIA.length + " recettes à relire");
+}
+
+function rendreRevue(vue) {
+  const ret = el("button", "retour", "‹ Annuler");
+  ret.onclick = () => { revueIA = null; rendre(); };
+  vue.appendChild(ret);
+
+  vue.appendChild(el("h2", "fiche-titre", "Recettes proposées"));
+  const n = revueIA.filter(p => p.garder).length;
+  vue.appendChild(el("div", "petit", n + " " + trad("sur") + " " + revueIA.length + " " + trad("sélectionnées") + ". " +
+    trad("Rien n'entre dans le pool avant que vous validiez.")));
+
+  const barre = el("div", "barre");
+  const bt = el("button", "cta-secondaire", n === revueIA.length ? "Tout décocher" : "Tout cocher");
+  bt.onclick = () => { const v = n !== revueIA.length; revueIA.forEach(p => p.garder = v); rendre(); };
+  barre.appendChild(bt);
+  const ba = el("button", "cta", "Ajouter la sélection");
+  ba.onclick = () => {
+    const gardees = revueIA.filter(p => p.garder).map(p => p.r);
+    state.recettes.push(...gardees);
+    revueIA = null; sauver(); onglet = "recettes"; rendre();
+    toast(gardees.length + " recettes ajoutées");
+  };
+  barre.appendChild(ba);
+  vue.appendChild(barre);
+
+  for (const p of revueIA) {
+    const bloc = el("div", "proposition" + (p.garder ? " gardee" : ""));
+    const tete = el("div", "prop-tete");
+    tete.appendChild(el("span", "case", p.garder ? "✓" : ""));
+    const t = el("div", "prop-txt");
+    t.appendChild(el("div", "recette-nom", p.r.nom));
+    t.appendChild(el("div", "petit", [
+      p.r.minutes + " min", p.r.batch + " " + trad("portions"),
+      euros(coutRecette(p.r, 1) / p.r.batch) + "/" + trad("portion"),
+      NOM_CUISINE[p.r.cuisine] || p.r.cuisine
+    ].join(" · ")));
+    if (p.avis.length) t.appendChild(el("div", "prop-avis", trad("À vérifier") + " : " + p.avis.join(" · ")));
+    tete.appendChild(t);
+    tete.onclick = () => { p.garder = !p.garder; rendre(); };
+    bloc.appendChild(tete);
+
+    bloc.appendChild(repliable("Voir le détail", corps => {
+      const ul = el("div", "ing-liste");
+      for (const i of p.r.ing) {
+        const li = el("div", "ing");
+        li.appendChild(el("span", "ing-nom", i.n));
+        li.appendChild(el("span", "ing-qte", formatQte(i, false)));
+        ul.appendChild(li);
+      }
+      corps.appendChild(ul);
+      const ol = el("ol", "etapes");
+      for (const e of p.r.etapes) ol.appendChild(el("li", null, e));
+      corps.appendChild(ol);
+      const bE = el("button", "cta-secondaire", "Modifier");
+      bE.onclick = () => editerProposition(p.r, p.avis);
+      corps.appendChild(bE);
+    }));
+    vue.appendChild(bloc);
+  }
 }
 
 </script>
