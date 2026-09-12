@@ -417,6 +417,27 @@ body.sombre .minuteur { color: #14171A; }
 .petit.vert { color: var(--poireau); font-weight: 600; }
 .petit.prune { color: var(--prune); font-weight: 600; }
 
+/* ---------- v7 : d'où vient un article ---------- */
+.article-bloc { border-bottom: 1px solid var(--trait); }
+.article-bloc .article { border-bottom: none; }
+.chevron {
+  flex: 0 0 32px; height: 32px; margin-left: 4px;
+  background: none; border: 1px solid var(--trait); border-radius: 8px;
+  color: var(--encre2); font-size: 17px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.chevron.ouvert { border-color: var(--poireau); color: var(--poireau); }
+.origines {
+  padding: 4px 0 12px 36px; margin-bottom: 4px;
+  border-left: 2px solid var(--trait); margin-left: 11px;
+}
+.origines-titre { font-size: 11.5px; font-weight: 700; color: var(--encre2); margin-bottom: 4px; }
+.origine { display: flex; align-items: center; gap: 9px; padding: 6px 0; cursor: pointer; }
+.origine-txt { flex: 1 1 auto; min-width: 0; }
+.origine-nom { font-size: 14px; line-height: 1.25; }
+.origine-qte { flex: 0 0 auto; font-size: 13px; color: var(--encre2); font-variant-numeric: tabular-nums; }
+.origines-reste { font-size: 12px; color: var(--ocre); font-weight: 600; margin-top: 6px; }
+
 </style>
 </head>
 <body>
@@ -1605,6 +1626,7 @@ const EN = {
     "Indicative French 2026 prices, adjusted per aisle by chain. Editable in Settings.",
   "ex : moules, pignons de pin": "e.g. mussels, pine nuts",
   "Semaine": "Week",
+  "Utilisé dans": "Used in", "Il vous en restera": "You will have left over", "Voir les recettes": "See the recipes", "Aucune recette.": "No recipe.",
   "Saison et température": "Season and temperature", "hors saison": "out of season",
   "ingrédients hors saison": "ingredients out of season",
   "ingrédient hors saison": "ingredient out of season", "tout est de saison": "everything is in season",
@@ -2981,8 +3003,15 @@ function listeCourses(plan) {
     const f = facteurSession(plan, i, dessert);
     for (const ing of rec.ing) {
       const cle = ing.n.toLowerCase() + "|" + ing.u;
-      if (!total[cle]) total[cle] = { n: ing.n, u: ing.u, q: 0, r: ing.r, cle };
+      if (!total[cle]) total[cle] = { n: ing.n, u: ing.u, q: 0, r: ing.r, cle, origines: [] };
       total[cle].q += ing.q * f;
+      const dejaLa = total[cle].origines.find(o => o.id === rec.id);
+      if (dejaLa) dejaLa.q += ing.q * f;
+      else total[cle].origines.push({
+        id: rec.id, q: ing.q * f,
+        moment: dessert ? null : s.moment,
+        jour: dessert ? s.jour : null
+      });
     }
   }
   const placard = state.reglages.placard.map(p => p.toLowerCase());
@@ -3018,6 +3047,7 @@ function euros(x) { return (Math.round(x * 100) / 100).toFixed(2).replace(".", "
    RENDU
    ================================================================== */
 let onglet = "semaine", recetteOuverte = null, echelleFiche = null, ecranQuiz = null;
+let coursesOuvertes = new Set();   // articles dépliés dans la liste de courses
 
 function $(s) { return document.querySelector(s); }
 function el(t, c, x) { const e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = trad(x); return e; }
@@ -3313,6 +3343,8 @@ function rendreCourses(vue) {
     for (const a of parRayon[r]) {
       n++;
       const on = coches.has(a.cle); if (on) pris++;
+      const bloc = el("div", "article-bloc");
+      const ouvert = coursesOuvertes.has(a.cle);
       const li = el("div", "article" + (on ? " coche" : ""));
       li.appendChild(el("span", "case", on ? "✓" : ""));
       const t = el("div", "article-txt");
@@ -3332,7 +3364,19 @@ function rendreCourses(vue) {
         if (i >= 0) l.splice(i, 1); else l.push(a.cle);
         sauver(); rendre();
       };
-      bl.appendChild(li);
+
+      const ch = el("button", "chevron" + (ouvert ? " ouvert" : ""), ouvert ? "−" : "+");
+      ch.setAttribute("aria-label", trad("Voir les recettes"));
+      ch.onclick = (ev) => {
+        ev.stopPropagation();
+        if (ouvert) coursesOuvertes.delete(a.cle); else coursesOuvertes.add(a.cle);
+        rendre();
+      };
+      li.appendChild(ch);
+      bloc.appendChild(li);
+
+      if (ouvert) bloc.appendChild(panneauOrigines(a));
+      bl.appendChild(bloc);
     }
     vue.appendChild(bl);
   }
@@ -3866,8 +3910,8 @@ function init() {
   document.querySelectorAll(".tab").forEach(t => {
     t.onclick = () => { onglet = t.dataset.onglet; recetteOuverte = null; echelleFiche = null; ecranQuiz = null; rendre(); };
   });
-  $("#prec").onclick = () => { semaineCourante--; recetteOuverte = null; ecranQuiz = null; rendre(); };
-  $("#suiv").onclick = () => { semaineCourante++; recetteOuverte = null; ecranQuiz = null; rendre(); };
+  $("#prec").onclick = () => { semaineCourante--; coursesOuvertes.clear(); recetteOuverte = null; ecranQuiz = null; rendre(); };
+  $("#suiv").onclick = () => { semaineCourante++; coursesOuvertes.clear(); recetteOuverte = null; ecranQuiz = null; rendre(); };
   $("#modale").onclick = e => { if (e.target.id === "modale") fermerModale(); };
   rendre();
 }
@@ -4094,6 +4138,44 @@ function blocSaison(vue) {
   b.appendChild(champNombre("Adapter les plats à la température (0 à 3)", r.poidsMeteo, 0, 3, v => { r.poidsMeteo = v; sauver(); }));
   b.appendChild(el("p", "petit", "Les produits frais hors saison sont signalés dans la liste de courses et comptés 40 % plus cher, ce qui correspond à peu près à la réalité des étals."));
   vue.appendChild(b);
+}
+
+/* ==================================================================
+   LISTE DE COURSES — d'où vient un article
+   Les quantités affichées ici sont les quantités réelles de chaque
+   recette ; l'en-tête, lui, est arrondi à ce qui s'achète.
+   ================================================================== */
+function panneauOrigines(a) {
+  const w = el("div", "origines");
+  const liste = (a.origines || []).slice().sort((x, y) => y.q - x.q);
+  if (!liste.length) { w.appendChild(el("div", "petit", "Aucune recette.")); return w; }
+
+  w.appendChild(el("div", "origines-titre", "Utilisé dans"));
+  for (const o of liste) {
+    const r = state.recettes.find(x => x.id === o.id);
+    const l = el("div", "origine");
+    const ic = el("span", "ic");
+    ic.innerHTML = svgIcone(iconePlat(r), 17);
+    l.appendChild(ic);
+    const txt = el("div", "origine-txt");
+    txt.appendChild(el("div", "origine-nom", r ? r.nom : "—"));
+    txt.appendChild(el("div", "petit", o.jour !== null ? trad(JOURS[o.jour]) : libelleMoment(o.moment)));
+    l.appendChild(txt);
+    l.appendChild(el("span", "origine-qte", formatQte({ n: a.n, u: a.u, q: o.q, r: a.r }, false)));
+    l.onclick = () => { echelleFiche = null; recetteOuverte = r ? r.id : null; onglet = "recettes"; rendre(); };
+    w.appendChild(l);
+  }
+
+  // on achète à l'unité : ce qui reste après la semaine mérite d'être dit
+  if (COMPTABLES.indexOf(a.u) >= 0) {
+    const utilise = liste.reduce((x, o) => x + o.q, 0);
+    const achat = Math.max(1, Math.ceil(utilise - 0.001));
+    if (achat - utilise > 0.25) {
+      w.appendChild(el("div", "origines-reste",
+        trad("Il vous en restera") + " : " + formatQte({ n: a.n, u: a.u, q: achat - utilise, r: a.r }, false)));
+    }
+  }
+  return w;
 }
 
 /* ==================================================================
